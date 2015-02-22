@@ -7,6 +7,7 @@ void add_bt(Uint32 pc);
 int check_bp(int pc);
 void add_bp(int pc);
 void del_bp(int pc);
+void clear_bps(void);
 int dbg_68k_run(Uint32 nbcycle);
 extern int dbg_step;
 

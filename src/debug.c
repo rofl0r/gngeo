@@ -63,6 +63,17 @@ void del_bp(int pc)
 	    breakpoints[i] = -1;
     }
 }
+
+void clear_bps(void)
+{
+    int i;
+    for (i = 0; i < nb_breakpoints; i++) {
+        breakpoints[i] = -1;
+    }
+    nb_breakpoints = 0;
+}
+
+
 #if 0
 void debug_interf(void)
 {
