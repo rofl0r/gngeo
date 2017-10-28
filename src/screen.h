@@ -21,6 +21,10 @@ SDL_Surface *screen;
 SDL_Surface *buffer, *sprbuf, *fps_buf, *scan, *fontbuf;
 //SDL_Surface *triplebuf[2];
 
+SDL_Texture *texture;
+SDL_Window *window;
+SDL_Renderer *renderer;
+
 SDL_Rect visible_area;
 
 int yscreenpadding;

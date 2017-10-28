@@ -132,9 +132,9 @@ int SDL_getchar(void)
 	    break;
 	}
 	    
-	if ( (event.key.keysym.unicode & 0xFF80) == 0 ) {
-	    return (event.key.keysym.unicode & 0x7F);
-	}
+        if ( event.key.keysym.sym < 0x7F ) {
+            return event.key.keysym.sym;
+        }
 	break;
     }
     return 0;
@@ -160,7 +160,6 @@ void text_input(const char *message,int x,int y,char *string,int size)
 //    SDL_BlitSurface(buffer,&clear_rect,save,NULL);
     SDL_textout(buffer,x,y,message);
     sx=x+strlen(message)* font_w;
-    SDL_EnableUNICODE(1);
     while((a=SDL_getchar())!=-1) {
 	if (a==LEFT && pos>0) pos--;
 	if (a==RIGHT && pos<s) pos++;
@@ -197,7 +196,6 @@ void text_input(const char *message,int x,int y,char *string,int size)
 	((Uint16*)buffer->pixels)[352*(16+222)+sx+pos* font_w+font_w]=0;	
 	screen_update();
     }
-    SDL_EnableUNICODE(0);
     if (conf.sound) pause_audio(0);
     reset_frame_skip();
 }

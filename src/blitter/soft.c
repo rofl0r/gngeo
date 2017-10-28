@@ -25,7 +25,6 @@ static SDL_Rect screen_rect =	{ 0,  0, 304, 240};
 #else
 static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
 #endif
-//static SDL_Surface *offscreen;
 static int vsync;
 
 
@@ -34,27 +33,24 @@ blitter_soft_init()
 {
 	Uint32 width = visible_area.w;
 	Uint32 height = visible_area.h;
+
+	if (window != NULL) return GN_TRUE;
+
 #ifdef GP2X
 	Uint32 screen_w;
-	int hw_surface=SDL_HWSURFACE/*|SDL_FULLSCREEN|SDL_DOUBLEBUF*/;
 	int *tvoffset = CF_ARRAY(cf_get_item_by_name("tv_offset"));
-	// TVTEST
-	//int hw_surface=SDL_SWSURFACE;
-#else
-	int hw_surface=(CF_BOOL(cf_get_item_by_name("hwsurface"))?SDL_HWSURFACE:SDL_SWSURFACE);
 #endif
 	//int screen_size=CF_BOOL(cf_get_item_by_name("screen320"));
 #ifdef DEVKIT8000
-	Uint32 sdl_flags = hw_surface|(fullscreen?SDL_FULLSCREEN:0)|SDL_DOUBLEBUF;
+	Uint32 sdl_flags = fullscreen?SDL_WINDOW_FULLSCREEN:0;
 
 	screen_rect.w=visible_area.w;
 	screen_rect.h=240;
 	height=240;
 #else
-	Uint32 sdl_flags = hw_surface | (fullscreen ? SDL_FULLSCREEN : 0);
+	Uint32 sdl_flags = 0;
 
 	vsync = CF_BOOL(cf_get_item_by_name("vsync"));
-	sdl_flags |= (vsync?SDL_DOUBLEBUF:0);
 
 	if (vsync) {
 		height=240;
@@ -134,12 +130,24 @@ blitter_soft_init()
 
 
 #else
-	screen = SDL_SetVideoMode(width, height, 16, sdl_flags);
+	window = SDL_CreateWindow("Gngeo",
+				  SDL_WINDOWPOS_UNDEFINED,
+				  SDL_WINDOWPOS_UNDEFINED,
+				  width, height,
+				  (fullscreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0)|sdl_flags);
+	renderer = SDL_CreateRenderer(window, -1, vsync?SDL_RENDERER_PRESENTVSYNC:0);
+	// for preserving aspect when scaling
+	SDL_RenderSetLogicalSize(renderer, width, height);
+	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+	texture = SDL_CreateTexture(renderer,
+				    SDL_PIXELFORMAT_RGB565,
+				    SDL_TEXTUREACCESS_STREAMING,
+				    width, height);
+	screen = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 16, 0xF800, 0x7E0, 0x1F, 0);
 	//SDL_ShowCursor(SDL_DISABLE);
 #endif
 	if (!screen) return GN_FALSE;
 	if (vsync) yscreenpadding = screen_rect.y * screen->pitch;
-	//offscreen = SDL_CreateRGBSurface(SDL_HWSURFACE, 304, 224, 16, 0xF800, 0x7E0, 0x1F, 0);
 
 	return GN_TRUE;
 }
@@ -271,15 +279,12 @@ blitter_soft_update()
 			}
 			
 		}
-#ifdef DEVKIT8000
-	SDL_Flip(screen);
-#else
-  if (vsync)
-	  SDL_Flip(screen);
-  else
-	  SDL_UpdateRect(screen, 0, 0, 0, 0);
-#endif
-//	SDL_Flip(screen);
+
+  SDL_UpdateTexture(texture, NULL, screen->pixels, screen->w*2);
+  SDL_RenderClear(renderer);
+  SDL_RenderCopy(renderer, texture, NULL, NULL);
+  SDL_RenderPresent(renderer);
+
 #endif
  
 }
@@ -292,6 +297,7 @@ blitter_soft_close()
 	
 void
 blitter_soft_fullscreen() {
-  SDL_WM_ToggleFullScreen(screen);
+  SDL_SetWindowFullscreen(window,
+			  fullscreen?SDL_WINDOW_FULLSCREEN:0);
 }
 	

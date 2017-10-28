@@ -22,6 +22,12 @@ AM_PROG_AR
 AC_PROG_RANLIB
 AM_PROG_AS
 
+# Check whether CC is clang
+AC_CACHE_CHECK([whether the C compiler is clang],[ng_cv_cc_clang],
+               [if $CC -dM -E - </dev/null 2>/dev/null | grep -q __clang__; then
+	         ng_cv_cc_clang=yes;
+	       fi])
+
 AC_DEFUN([GN_ARG_ENABLE],[
 	AC_ARG_ENABLE($1,[  $2],
 		[case "${enableval}" in
@@ -43,8 +49,8 @@ GN_ARG_ENABLE(embedded,[--enable-embedded       Enable Embedded directory struct
 
 
 # Check for SDL
-SDL_VERSION=1.2.0
-AM_PATH_SDL($SDL_VERSION,,AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!]))
+SDL_VERSION=2.0.0
+AM_PATH_SDL2($SDL_VERSION,,AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!]))
 CFLAGS="$CFLAGS $SDL_CFLAGS"
 LIBS="$LIBS $SDL_LIBS"
 
@@ -199,7 +205,7 @@ esac
 
 
 
-AC_CHECK_HEADERS(GL/gl.h)
+AX_CHECK_GL
 AC_DEFINE([USE_GL2],[1],[Define to use alternative opengl blitter])
 
 AM_CONDITIONAL(HAVE_NASM,[test x$have_nasm = xtrue])
@@ -277,6 +283,19 @@ AC_CHECK_FUNCS([atexit floor gettimeofday memset mkdir pow strchr strstr strtoul
                     -ffast-math -g"
            ;;
   esac
+
+# Unset optimizations not support by clang
+if test "x$ng_cv_cc_clang" = "xyes"; then
+   CFLAGS=`echo $CFLAGS | sed -e 's/-fexpensive-optimizations//g' -e 's/-frerun-loop-opt//g' -e 's/-fstrength-reduce//' -e 's/-malign-double//g'`
+fi
+
+# Force define of system types on Darwin
+case $target_os in
+    *darwin*)
+    libmamez80_a_CFLAGS='-Duint="unsigned int"'
+    AC_SUBST(libmamez80_a_CFLAGS)
+    ;;
+esac
 
 AM_CONDITIONAL(PROCESSOR_ARM,[test x$proc_arm = xtrue])
   

@@ -3,6 +3,7 @@
 #endif
 
 //#include <stdbool.h>
+#include <stdlib.h>
 
 #include "SDL.h"
 #include "screen.h"
@@ -61,7 +62,7 @@ int create_joymap_from_string(int player,char *jconf) {
 		if (rc==3 && type=='K') { /* Keyboard */
 			//printf("%s | keycode %d\n",butid,jid);
 			code=jid;
-			if (code<SDLK_LAST) {
+                        if (code<SDL_NUM_SCANCODES) {
 				jmap->key[code].player=player;
 				jmap->key[code].map=get_mapid(butid);
 			}
@@ -158,7 +159,7 @@ int init_event(void) {
 		for (i=0;i<conf.nb_joy;i++) {
 			conf.joy[i]=SDL_JoystickOpen(i);
 			printf("joy \"%s\", axe:%d, button:%d\n",
-				   SDL_JoystickName(i),
+				   SDL_JoystickName(conf.joy[i]),
 				   SDL_JoystickNumAxes(conf.joy[i])+ (SDL_JoystickNumHats(conf.joy[i]) * 2),
 				   SDL_JoystickNumButtons(conf.joy[i]));
 			jmap->jbutton[i]=calloc(SDL_JoystickNumButtons(conf.joy[i]),sizeof(struct BUT_MAP));
@@ -250,18 +251,20 @@ int handle_event(void) {
 	    	return ret;
 	    }
 		switch (event.type) {
+                    SDL_Keycode sym;
 		case SDL_KEYUP:
+			sym=event.key.keysym.sym & ~SDLK_SCANCODE_MASK;
 			//printf("%d\n",jmap->key[event.key.keysym.sym].player);
-			switch (jmap->key[event.key.keysym.sym].player) {
+			switch (jmap->key[sym].player) {
 			case 1:
-				joy_state[0][jmap->key[event.key.keysym.sym].map]=0;
+				joy_state[0][jmap->key[sym].map]=0;
 				break;
 			case 2:
-				joy_state[1][jmap->key[event.key.keysym.sym].map]=0;
+				joy_state[1][jmap->key[sym].map]=0;
 				break;
 			case 3:
-				joy_state[1][jmap->key[event.key.keysym.sym].map]=0;
-				joy_state[0][jmap->key[event.key.keysym.sym].map]=0;
+				joy_state[1][jmap->key[sym].map]=0;
+				joy_state[0][jmap->key[sym].map]=0;
 				break;
 			default:
 				break;
@@ -269,16 +272,18 @@ int handle_event(void) {
 		break;
 	    case SDL_KEYDOWN:
 				//printf("%d\n", event.key.keysym.sym);
-		    switch (jmap->key[event.key.keysym.sym].player) {
+		    if (event.key.repeat) { break; }
+		    sym=event.key.keysym.sym & ~SDLK_SCANCODE_MASK;
+		    switch (jmap->key[sym].player) {
 			case 1:
-				joy_state[0][jmap->key[event.key.keysym.sym].map]=1;
+				joy_state[0][jmap->key[sym].map]=1;
 				break;
 			case 2:
-				joy_state[1][jmap->key[event.key.keysym.sym].map]=1;
+				joy_state[1][jmap->key[sym].map]=1;
 				break;
 			case 3:
-				joy_state[1][jmap->key[event.key.keysym.sym].map]=1;
-				joy_state[0][jmap->key[event.key.keysym.sym].map]=1;
+				joy_state[1][jmap->key[sym].map]=1;
+				joy_state[0][jmap->key[sym].map]=1;
 				break;
 			default:
 				break;
@@ -383,10 +388,19 @@ int handle_event(void) {
 			}
 		}
 			break;
-		case SDL_VIDEORESIZE:
-			conf.res_x=event.resize.w;
-			conf.res_y=event.resize.h;
-			screen_resize(event.resize.w, event.resize.h);
+		case SDL_WINDOWEVENT:
+		{
+			switch (event.window.event) {
+			case SDL_WINDOWEVENT_RESIZED:
+			case SDL_WINDOWEVENT_SIZE_CHANGED:
+				conf.res_x=event.window.data1;
+				conf.res_y=event.window.data2;
+				screen_resize(event.window.data1, event.window.data2);
+				break;
+			case SDL_WINDOWEVENT_CLOSE:
+				exit(0);
+			}
+		}
 			break;
 		case SDL_QUIT:
 			return 1;

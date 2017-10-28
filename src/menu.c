@@ -549,8 +549,8 @@ int gn_init_skin(void) {
 
 	pbar_logo = SDL_CreateRGBSurface(SDL_SWSURFACE, gngeo_logo->w,
 			gngeo_logo->h, 32, 0xFF, 0xFF00, 0xFF0000, 0xFF000000);
-	SDL_SetAlpha(gngeo_logo, 0, 0);
-	//SDL_SetAlpha(gngeo_mask,0,0);
+	SDL_SetSurfaceAlphaMod(gngeo_logo, 0);
+	SDL_SetSurfaceAlphaMod(gngeo_mask, 0);
 	init_back();
 
 	if (!back || !sfont || !mfont || !arrow_r || !arrow_l || !arrow_u
@@ -606,13 +606,19 @@ int pbar_anim_thread(void *data) {
 		SDL_BlitSurface(pbar_logo, &src_r, menu_buf, &dst_r);
 
 		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
+# ifndef __APPLE__
+                // macOS OpenGL call must be done from the thread
+                // that created the OpenGL context
 		screen_update();
+#endif
 		frame_skip(0);
 		//printf("TOTO %d %d %d\n",p->pos,p->size,dst2_r.x);
 	}
 	SDL_BlitSurface(gngeo_logo, NULL, pbar_logo, NULL);
 	SDL_BlitSurface(pbar_logo, &src_r, menu_buf, &dst_r);
+# ifndef __APPLE__
 	screen_update();
+#endif
 	frame_skip(0);
 	return 0;
 }
@@ -622,7 +628,7 @@ void gn_init_pbar(char *name, int size) {
 	pbar.pos = 0;
 	pbar.size = size;
 	pbar.running = 1;
-	pbar_th = SDL_CreateThread(pbar_anim_thread, (void*) &pbar);
+	pbar_th = SDL_CreateThread(pbar_anim_thread, "pbar_th", (void*) &pbar);
 }
 
 void gn_update_pbar(int pos) {
@@ -1199,7 +1205,7 @@ static int changedir_action(GN_MENU_ITEM *self, void *param) {
 	cf_save_option(NULL, "rompath", 0);
 
 	scaning = 1;
-	anim_th = SDL_CreateThread(rom_browser_scanning_anim, NULL);
+	anim_th = SDL_CreateThread(rom_browser_scanning_anim, "anim_th", NULL);
 	free_rom_browser_menu();
 	init_rom_browser_menu();
 	scaning = 0;
@@ -1373,7 +1379,7 @@ if (init == 0) {
 	free(rpath);
 
 	scaning = 1;
-	anim_th = SDL_CreateThread(rom_browser_scanning_anim, NULL);
+	anim_th = SDL_CreateThread(rom_browser_scanning_anim, "anim_th", NULL);
 	init_rom_browser_menu();
 	scaning = 0;
 	SDL_WaitThread(anim_th, NULL);

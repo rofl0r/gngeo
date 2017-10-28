@@ -425,7 +425,12 @@ void cf_init(void) {
 	cf_create_string_item("datafile", "Tell gngeo where his ressource file is", "PATH", 'd', DATA_DIRECTORY"/gngeo_data.zip");
 #endif
 	//cf_create_string_item("romrcdir","Use STRING as romrc.d directory",0,DATA_DIRECTORY"/romrc.d");
-	cf_create_string_item("libglpath", "Path to your libGL.so", "PATH", 0, "/usr/lib/libGL.so");
+#ifdef PROCESSOR_ADM64
+	#define DEFAULT_LIBGLPATH "/usr/lib64/libGL.so"
+#else
+	#define DEFAULT_LIBGLPATH "/usr/lib/libGL.so"
+#endif
+	cf_create_string_item("libglpath", "Path to your libGL.so", "PATH", 0, DEFAULT_LIBGLPATH);
 	cf_create_string_item("effect", "Use the specified effect (help for a list)", "Effect", 'e', "none");
 	cf_create_string_item("blitter", "Use the specified blitter (help for a list)", "Blitter", 'b', "soft");
 	cf_create_string_item("transpack", "Use the specified transparency pack", "Transpack", 't', "none");

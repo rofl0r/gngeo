@@ -23,7 +23,7 @@ Licence:
 	Drz80, Raze and Starscream.	  
 
 REQUIREMENT : 
-	SDL-1.2.x and the libz
+	SDL-2.0.x and the libz
 	optional: nasm 0.98 for i386 asm optimisation
 	You will also need a neogeo BIOS
 

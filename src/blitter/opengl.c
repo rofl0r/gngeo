@@ -1,7 +1,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#ifdef HAVE_GL_GL_H
+#if defined(HAVE_GL_GL_H) || defined(HAVE_OPENGL_GL_H)
 #ifndef WII
 #ifndef GP2X
 
@@ -25,12 +25,18 @@ static SDL_Surface *video_opengl;
 static SDL_Surface *tex_opengl;
 static SDL_Rect glrectef;
 
+static SDL_GLContext context;
+
 static int load_glproc() {
     static int init=0;
+    char *libgl_name=NULL;
     CONF_ITEM *cf_libgl=cf_get_item_by_name("libglpath");
     if (init) return GN_TRUE;
     init=1;
-    if (SDL_GL_LoadLibrary(CF_STR(cf_libgl))==-1) {
+#ifndef __APPLE__
+    libgl_name=CF_STR(cf_libgl);
+#endif
+    if (SDL_GL_LoadLibrary(libgl_name)==-1) {
         printf("Unable to load OpenGL library: %s\n", CF_STR(cf_libgl));
         return GN_FALSE;
     }
@@ -56,11 +62,13 @@ blitter_opengl_init()
 	Uint32 sdl_flags;
 	Uint32 width = visible_area.w;
 	Uint32 height = visible_area.h;		
-	
-        if (load_glproc() == GN_FALSE) return GN_FALSE;
 
-	sdl_flags = (fullscreen?SDL_FULLSCREEN:0)| SDL_DOUBLEBUF | SDL_HWSURFACE
-	    | SDL_HWPALETTE | SDL_OPENGL | SDL_RESIZABLE;
+	if (window != NULL) return GN_TRUE;
+
+	if (load_glproc() == GN_FALSE) return GN_FALSE;
+
+	sdl_flags = (fullscreen?SDL_WINDOW_FULLSCREEN:0) |
+            SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
 	//SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 	if ((effect[neffect].x_ratio!=2 || effect[neffect].y_ratio!=2) &&  
@@ -88,11 +96,21 @@ blitter_opengl_init()
 */
 	conf.res_x=width;
 	conf.res_y=height;
-	
-	video_opengl = SDL_SetVideoMode(width, height, 16, sdl_flags);
-	
-	if ( video_opengl == NULL)
+
+	window = SDL_CreateWindow("Gngeo",
+                                  SDL_WINDOWPOS_UNDEFINED,
+                                  SDL_WINDOWPOS_UNDEFINED,
+                                  width,
+                                  height,
+                                  sdl_flags);
+	if ( window == NULL)
 		return GN_FALSE;
+
+        /* Create our opengl context and attach it to our window */
+        context = SDL_GL_CreateContext(window);
+
+        /* This makes our buffer swap synchronized with the monitor's vertical refresh */
+        SDL_GL_SetSwapInterval(1);
 	
 	pglClearColor(0, 0, 0, 0);
 	pglClear(GL_COLOR_BUFFER_BIT);
@@ -161,13 +179,6 @@ int
 blitter_opengl_resize(int w,int h)
 {
   Uint32 sdl_flags;
-
-  sdl_flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_HWPALETTE | SDL_OPENGL | SDL_RESIZABLE;
-
-  video_opengl = SDL_SetVideoMode(w, h, 16, sdl_flags);
-
-  if ( video_opengl == NULL)
-    return GN_FALSE;
 
   pglEnable(GL_TEXTURE_2D);
   pglViewport(0, 0, w, h);
@@ -354,7 +365,7 @@ blitter_opengl_update()
 #endif
     }
 	
-    SDL_GL_SwapBuffers();	
+    SDL_GL_SwapWindow(window);
 }
 
 void
@@ -365,13 +376,16 @@ blitter_opengl_close()
 }
 
 void blitter_opengl_fullscreen() {
-/* TODO: Borken, at least on ubuntu with catalyst -> the screen goes black */
-	SDL_WM_ToggleFullScreen(video_opengl);
-	pglEnable(GL_TEXTURE_2D);
-	pglViewport(0, 0, conf.res_x, conf.res_y);
-
-
-
+    SDL_DisplayMode mode;
+    SDL_SetWindowFullscreen(window,
+                            fullscreen?SDL_WINDOW_FULLSCREEN:0);
+    if (fullscreen) {
+        SDL_GetWindowDisplayMode(window, &mode);
+    } else {
+        SDL_GetWindowSize(window, &conf.res_x, &conf.res_y);
+    }
+    pglEnable(GL_TEXTURE_2D);
+    pglViewport(0, 0, conf.res_x, conf.res_y);
 }
 
 #endif

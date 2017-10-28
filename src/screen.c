@@ -28,12 +28,12 @@ blitter_func blitter[] = {
 		blitter_soft_close},
 #ifndef GP2X
 #ifndef WII
-#ifdef HAVE_GL_GL_H
+#if defined(HAVE_GL_GL_H) || defined(HAVE_OPENGL_GL_H)
 	{"opengl", "Opengl blitter", blitter_opengl_init, blitter_opengl_resize, blitter_opengl_update,
 		blitter_opengl_fullscreen, blitter_opengl_close},
 #endif
-	{"yuv", "YUV blitter (YV12)", blitter_overlay_init, blitter_overlay_resize, blitter_overlay_update,
-		blitter_overlay_fullscreen, blitter_overlay_close},
+	/* {"yuv", "YUV blitter (YV12)", blitter_overlay_init, blitter_overlay_resize, blitter_overlay_update, */
+	/* 	blitter_overlay_fullscreen, blitter_overlay_close}, */
 #endif
 #endif
 	{NULL, NULL, NULL, NULL, NULL, NULL, NULL}
@@ -267,7 +267,7 @@ void screen_change_blitter_and_effect(void) {
 	neffect = get_effect_by_name(CF_STR(cf_effect));
 //	printf("set %s %s \n", bname, ename);
 
-	SDL_QuitSubSystem(SDL_INIT_VIDEO);
+	SDL_InitSubSystem(SDL_INIT_VIDEO);
 
 	if ((*blitter[nblitter].init) () == GN_FALSE) {
 		nblitter = 0;
@@ -285,7 +285,6 @@ void screen_change_blitter_and_effect(void) {
 	} /*else
 		snprintf(CF_STR(cf_get_item_by_name("effect")), 255, "%s", ename);
 */
-	SDL_InitSubSystem(SDL_INIT_VIDEO);
 
 
 	printf("CURSOR=%d\n", SDL_ShowCursor(SDL_QUERY));
@@ -411,15 +410,15 @@ void sdl_set_title(char *name) {
 		title = malloc(strlen("Gngeo : ") + strlen(name) + 1);
 		if (title) {
 			sprintf(title, "Gngeo : %s", name);
-			SDL_WM_SetCaption(title, NULL);
+			SDL_SetWindowTitle(window, title);
 		}
 	} else {
-		SDL_WM_SetCaption("Gngeo", NULL);
+		SDL_SetWindowTitle(window, "Gngeo");
 	}
 }
 
 void init_sdl(void) {
-    int surface_type = (CF_BOOL(cf_get_item_by_name("hwsurface"))? SDL_HWSURFACE : SDL_SWSURFACE);
+    int surface_type = 0;
 
 
     char *nomouse = getenv("SDL_NOMOUSE");
@@ -444,13 +443,10 @@ void init_sdl(void) {
 
     fontbuf = SDL_CreateRGBSurfaceFrom(font_image.pixel_data, font_image.width, font_image.height
 				       , 24, font_image.width * 3, 0xFF0000, 0xFF00, 0xFF, 0);
-    SDL_SetColorKey(fontbuf,SDL_SRCCOLORKEY,SDL_MapRGB(fontbuf->format,0xFF,0,0xFF));
-    fontbuf=SDL_DisplayFormat(fontbuf);
+    SDL_SetColorKey(fontbuf,SDL_TRUE,SDL_MapRGB(fontbuf->format,0xFF,0,0xFF));
+    fontbuf=SDL_ConvertSurface(fontbuf, buffer->format, 0);
     icon = SDL_CreateRGBSurfaceFrom(gngeo_icon.pixel_data, gngeo_icon.width,
 				    gngeo_icon.height, gngeo_icon.bytes_per_pixel*8,
 				    gngeo_icon.width * gngeo_icon.bytes_per_pixel,
 				    0xFF, 0xFF00, 0xFF0000, 0);
-
-    SDL_WM_SetIcon(icon,NULL);
-
 }

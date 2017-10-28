@@ -123,7 +123,7 @@ enum {
 
 //config conf;
 
-Uint8 key[SDLK_LAST];
+Uint8 key[SDL_NUM_SCANCODES];
 Uint8 *joy_button[2];
 Sint32 *joy_axe[2];
 Uint32 joy_numaxes[2];
