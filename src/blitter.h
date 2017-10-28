@@ -32,6 +32,13 @@ void blitter_opengl_update();
 void blitter_opengl_fullscreen();
 void blitter_opengl_close();
 
+/* GLSL blitter */
+int blitter_glsl_init();
+int blitter_glsl_resize(int w, int h);
+void blitter_glsl_update();
+void blitter_glsl_fullscreen();
+void blitter_glsl_close();
+
 /* Overlay blitter */
 int blitter_overlay_init();
 int blitter_overlay_resize();

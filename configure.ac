@@ -206,6 +206,8 @@ esac
 
 
 AX_CHECK_GL
+AC_CHECK_HEADERS(GL/glew.h)
+AC_CHECK_LIB(GLEW, glewInit, [LIBS="$LIBS -lGLEW"])
 AC_DEFINE([USE_GL2],[1],[Define to use alternative opengl blitter])
 
 AM_CONDITIONAL(HAVE_NASM,[test x$have_nasm = xtrue])

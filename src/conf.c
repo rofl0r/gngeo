@@ -418,10 +418,12 @@ void cf_init(void) {
 #ifdef EMBEDDED_FS
 	cf_create_string_item("rompath", "Tell gngeo where your roms are", "PATH", 'i', ROOTPATH"./roms");
 	cf_create_string_item("biospath", "Tell gngeo where your neogeo bios is", "PATH", 'B', ROOTPATH"./roms");
+	cf_create_string_item("shaderpath", "Tell gngeo where your shaders are", "PATH", 'S', ROOTPATH"./shaders");
 	cf_create_string_item("datafile", "Tell gngeo where his ressource file is", "PATH", 'd', ROOTPATH"./gngeo_data.zip");
 #else
 	cf_create_string_item("rompath", "Tell gngeo where your roms are", "PATH", 'i', DATA_DIRECTORY);
 	cf_create_string_item("biospath", "Tell gngeo where your neogeo bios is", "PATH", 'B', DATA_DIRECTORY);
+	cf_create_string_item("shaderpath", "Tell gngeo where your shaders are", "PATH", 'S', DATA_DIRECTORY);
 	cf_create_string_item("datafile", "Tell gngeo where his ressource file is", "PATH", 'd', DATA_DIRECTORY"/gngeo_data.zip");
 #endif
 	//cf_create_string_item("romrcdir","Use STRING as romrc.d directory",0,DATA_DIRECTORY"/romrc.d");
@@ -436,6 +438,10 @@ void cf_init(void) {
 	cf_create_string_item("transpack", "Use the specified transparency pack", "Transpack", 't', "none");
 	cf_create_string_item("p1control", "Player1 control configutation", "...", 0, default_p1control);
 	cf_create_string_item("p2control", "Player2 control configutation", "...", 0, default_p2control);
+
+	cf_create_string_item("shader", "libretro GLSL preset file to use for GLSL blitter", "FILE", 0, "none");
+	cf_create_bool_item("resize", "resize GLSL canvas to window's dimensions", 0, GN_TRUE);
+
 /*
 #if defined(GP2X) || defined(WIZ)
 	cf_create_string_item("p1control", "Player1 control configutation", "...", 0,
