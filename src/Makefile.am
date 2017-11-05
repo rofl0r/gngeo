@@ -67,6 +67,10 @@ else
                 ym2610/libym2610.a $(m68k_lib) $(z80_lib) $(asm_lib)
 endif
 
+if USE_OPENGL
+  gngeo_LDADD += $(GL_LDFLAGS) $(GL_LIBS)
+endif
+
 EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc \
              ym2610-940 getopt.h
 

@@ -203,12 +203,43 @@ case "${z80core}" in
 	*) AC_MSG_ERROR([The specified z80 core is invalid]) ;;
 esac
 
-
+dnl Make AX_CHECK_GL support both OpenGL and OpenGL ES
+pushdef([_AX_CHECK_GL_PROGRAM],
+          [AC_LANG_PROGRAM([[
+# if defined(HAVE_WINDOWS_H) && defined(_WIN32)
+#   include <windows.h>
+# endif
+# ifdef HAVE_GL_GL_H
+#   include <GL/gl.h>
+# elif defined(HAVE_OPENGL_GL_H)
+#   include <OpenGL/gl.h>
+# else
+#   error no gl.h
+# endif
+]],[[glCreateProgram()]])])
 
 AX_CHECK_GL
-AC_CHECK_HEADERS(GL/glew.h)
-AC_CHECK_LIB(GLEW, glewInit, [LIBS="$LIBS -lGLEW"])
-AC_DEFINE([USE_GL2],[1],[Define to use alternative opengl blitter])
+AM_CONDITIONAL(USE_OPENGL,[test "X$no_gl" != "Xyes"])
+
+# dnl if GL was detected, configure blitter and compile flags
+AS_IF([test "X$no_gl" != "Xyes"],[
+# dnl distinguish between OpenGL and OpenGL ES
+AC_MSG_CHECKING([whether the OpenGL library is OpenGL ES])
+AC_LINK_IFELSE([_AX_CHECK_GL_PROGRAM],
+[AC_MSG_RESULT([no])
+ AC_DEFINE([USE_GL2],[1],[Define to use alternative opengl blitter])
+ AC_CHECK_HEADERS(GL/glew.h)
+ AC_CHECK_LIB(GLEW, glewInit,
+   [LIBS="$LIBS -lGLEW"
+    ng_cv_use_glsl=yes])
+],
+[AC_MSG_RESULT([yes])
+ ng_cv_use_glsl=yes]
+)
+AS_IF([test "x$ng_cv_use_glsl" = "xyes"],[
+   AC_DEFINE([USE_GLSL],[1],[Define to use alternative glsl blitter])
+])
+])
 
 AM_CONDITIONAL(HAVE_NASM,[test x$have_nasm = xtrue])
 AM_CONDITIONAL(USE_STARSCREAM,[test x$use_starscream = xtrue])

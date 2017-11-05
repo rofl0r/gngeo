@@ -28,7 +28,7 @@ blitter_func blitter[] = {
 		blitter_soft_close},
 #ifndef GP2X
 #ifndef WII
-#if defined(HAVE_GL_GL_H) || defined(HAVE_OPENGL_GL_H)
+#if (defined(HAVE_GL_GL_H) || defined(HAVE_OPENGL_GL_H)) && defined(USE_GL2)
 	{"opengl", "Opengl blitter", blitter_opengl_init, blitter_opengl_resize, blitter_opengl_update,
 		blitter_opengl_fullscreen, blitter_opengl_close},
 #endif
@@ -36,8 +36,9 @@ blitter_func blitter[] = {
 	/* 	blitter_overlay_fullscreen, blitter_overlay_close}, */
 #endif
 #endif
-#if (defined(HAVE_GL_GL_H) || defined(HAVE_OPENGL_GL_H)) && defined(HAVE_GL_GLEW_H)
-	{"glsl", "OpenGL ES blitter", blitter_glsl_init, blitter_glsl_resize, blitter_glsl_update, blitter_glsl_fullscreen, blitter_glsl_close},
+#if (defined(HAVE_GL_GL_H) || defined(HAVE_OPENGL_GL_H)) && defined(USE_GLSL)
+	{"glsl", "OpenGL shading language (GLSL) blitter",
+	 blitter_glsl_init, blitter_glsl_resize, blitter_glsl_update, blitter_glsl_fullscreen, blitter_glsl_close},
 #endif
 	{NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };

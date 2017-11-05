@@ -1,21 +1,25 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#if (defined(HAVE_GL_GL_H) || defined(HAVE_OPENGL_GL_H)) && defined(HAVE_GL_GLEW_H)
+#if (defined(HAVE_GL_GL_H) || defined(HAVE_OPENGL_GL_H)) && defined (USE_GLSL)
 
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
 #include "SDL.h"
+#ifdef USE_GL2
 #include "GL/glew.h"
+#else
+#include "SDL_opengles2.h"
+#include "SDL_opengles2_gl2.h"
+#endif
 #include "../emu.h"
 #include "../screen.h"
 #include "../video.h"
 #include "../effect.h"
 #include "../conf.h"
 #include "../gnutil.h"
-#include "glproc.h"
 
 /*
  * Libretro's GLSL preset
@@ -66,9 +70,10 @@ static GLuint input_tex;
 /// Number of frames to clear after resize, for double buffer
 int clear_after_resize;
 
-/// The vertex array object used during rendering
+#ifdef USE_GL2
+/// The vertex array object required for rendering with OpenGL
 static GLuint vao;
-
+#endif
 
 /*
  * vertex and texel coordinate buffers for rendering
@@ -128,7 +133,7 @@ static char* load_file_and_wrap(char *file, char *shadertag)
 	char *buf;
 	char *shader_buf;
 	char def_buf[SHADER_TAG_LEN];
-	snprintf(def_buf, SHADER_TAG_LEN, "#version 150\n#define %s 1\n", shadertag);
+	snprintf(def_buf, SHADER_TAG_LEN, "#version 100\n#define %s 1\n", shadertag);
 
 	fptr = fopen(file, "rb");
 	if (!fptr) {
@@ -261,9 +266,10 @@ static void create_pass_framebuffer(int width, int height, GLuint *texture, GLui
 
 static void init_static_gl_coords_buffers()
 {
+#ifdef USE_GL2
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-
+#endif
 	glGenBuffers(1,&vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(GLfloat), VertexData, GL_STATIC_DRAW);
@@ -279,7 +285,8 @@ static void init_static_gl_coords_buffers()
 
 static void update_texture_dimensions(int viewport_width, int viewport_height, int verbose)
 {
-	for (int i=0; i<nb_passes; i++) {
+	int i;
+	for (i=0; i<nb_passes; i++) {
 		pass_t p = &pipeline[i];
 		switch (p->scale_type_x) {
 		case VIEWPORT:
@@ -405,6 +412,7 @@ int parse_shader_preset(char *glslpname,
 	char *stmt;
 	int pos;
 	int buflen;
+	int i;
 	char *shaderpath, *sbuf;
 	char *glslp;
 
@@ -428,7 +436,7 @@ int parse_shader_preset(char *glslpname,
 		if (strcmp(key, "shaders") == 0) {
 			PARSE_INT(val, nb_passes);
 			pipeline = calloc(nb_passes, sizeof(struct _pass_));
-			for (int i=0; i<nb_passes; i++) {
+			for (i=0; i<nb_passes; i++) {
 				pipeline[i].scale_type_x = SOURCE;
 				pipeline[i].scale_type_y = SOURCE;
 				pipeline[i].scale_x = 1.0;
@@ -486,7 +494,7 @@ int parse_shader_preset(char *glslpname,
 	}
 
 	// Initialize FBO and texture for each pass
-	for (int i=0; i<nb_passes; i++) {
+	for (i=0; i<nb_passes; i++) {
 		pass_t p = &pipeline[i];
 		set_texture_filter_linear(p->src_texture, p->filter_linear);
 		if (i<nb_passes-1) {
@@ -545,17 +553,27 @@ blitter_glsl_init()
 	if ( window == NULL)
 		return GN_FALSE;
 
-        // Attach a specific OpenGL context to our window and enable
-        // direct access of recent OpenGL API via glew
-        SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
-        SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
-        SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 2 );
+	// Configure GL or GL ES depending on the lib we depend on
+#ifdef USE_GL2
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 2 );
+#else
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES );
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 2 );
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 0 );
+#endif
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         context = SDL_GL_CreateContext(window);
         SDL_GL_SetSwapInterval(1);
+
+#ifdef USE_GL2
+	// GLEW ensures that we get access to all the GL functions
+	// required for proper shader compilation
 	glewExperimental = GL_TRUE;
 	glewInit();
-        printf("Using GL: %s\n", glGetString(GL_VERSION));
+#endif
+	printf("Using GL: %s\n", glGetString(GL_VERSION));
 
         // Initialize the GLSL rendering pipeline
         input_tex = create_input_texture();
@@ -622,16 +640,17 @@ static void render_pass(int orig_width, int orig_height,
 	// GLuint l_FrameDirection = glGetUniformLocation(program, "FrameDirection");
 	// GLuint l_FrameCount = glGetUniformLocation(program, "FrameCount");
 
+#ifdef USE_GL2
 	glBindVertexArray(vao);
+#endif
 
-	// init all uniforms for the shader
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	glEnableVertexAttribArray(l_VertexCoord);
 	glVertexAttribPointer(l_VertexCoord, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(l_VertexCoord);
 
 	glBindBuffer(GL_ARRAY_BUFFER, dst_framebuffer!=0?screen_buffer:tex_buffer);
-	glEnableVertexAttribArray(l_TexCoord);
 	glVertexAttribPointer(l_TexCoord, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(l_TexCoord);
 
 	if (l_TextureSize != -1) glUniform2f(l_TextureSize, (float)orig_width, (float)orig_height);
 	if (l_InputSize != -1) glUniform2f(l_InputSize, (float)src_width, (float)src_height);
@@ -647,6 +666,7 @@ static void render_pass(int orig_width, int orig_height,
 void
 blitter_glsl_update()
 {
+	int i;
 	// GnGeo renders graphics in a big internal 2D buffer. Pixels are
 	// written in the "visible area", a 320x224 sub-rect with a
 	// (16,16) offset from the start of the internal buffer.
@@ -674,7 +694,7 @@ blitter_glsl_update()
 		     0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, input_pixels->pixels);
 
 	// render: TEX -> (pass1_prog) -> FBO -> ... -> (pass2_prog) -> OUTPUT
-	for (int i=0; i<nb_passes; i++) {
+	for (i=0; i<nb_passes; i++) {
 		pass_t p = &pipeline[i];
 		render_pass(screen_rect.w, screen_rect.h,
 			    p->src_texture, p->src_width, p->src_height,
