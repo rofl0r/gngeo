@@ -26,6 +26,8 @@ AM_PROG_AS
 AC_CACHE_CHECK([whether the C compiler is clang],[ng_cv_cc_clang],
                [if $CC -dM -E - </dev/null 2>/dev/null | grep -q __clang__; then
 	         ng_cv_cc_clang=yes;
+                else
+	         ng_cv_cc_clang=no;
 	       fi])
 
 AC_DEFUN([GN_ARG_ENABLE],[
