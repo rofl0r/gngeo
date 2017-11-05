@@ -42,6 +42,7 @@ AC_DEFUN([GN_ARG_ENABLE],[
 GN_ARG_ENABLE(gp2x,    [--enable-gp2x           Enable GP2X build])
 GN_ARG_ENABLE(wiz,     [--enable-wiz            Enable WIZ build])
 GN_ARG_ENABLE(wii,     [--enable-wii            Enable WII build])
+GN_ARG_ENABLE(rpi,     [--enable-rpi            Enable Raspberry Pi build])
 GN_ARG_ENABLE(pandora, [--enable-pandora        Enable PANDORA build])
 GN_ARG_ENABLE(win32,   [--enable-win32          Enable WIN32 build])
 GN_ARG_ENABLE(dingux,  [--enable-dingux         Enable DINGUX build])
@@ -86,6 +87,12 @@ if test "x$enable_wii" = xtrue ; then
 	enable_embedded=true
 	CFLAGS="$CFLAGS -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -MMD -MP"
 	LIBS="$LIBS -lSDL -lfat -lwiiuse -lbte -logc -lm -lwiikeyboard";
+fi
+if test "x$enable_rpi" = xtrue ; then
+	AC_DEFINE([RPI],[1],[Define if you build for Raspberry Pi])
+	GL_CFLAGS="-I /opt/vc/include"
+	GL_LDFLAGS="-L /opt/vc/lib"
+	GL_LIBS="-lGLESv2"
 fi
 if test "x$enable_win32" = xtrue ; then
    enable_embedded=true
