@@ -439,7 +439,7 @@ void cf_init(void) {
 	cf_create_string_item("p1control", "Player1 control configutation", "...", 0, default_p1control);
 	cf_create_string_item("p2control", "Player2 control configutation", "...", 0, default_p2control);
 
-	cf_create_string_item("shader", "libretro GLSL preset file to use for GLSL blitter", "FILE", 0, "none");
+	cf_create_string_item("shader", "libretro GLSL preset file to use for GLSL blitter", "FILE", 0, "noop.glslp");
 	cf_create_bool_item("resize", "resize GLSL canvas to window's dimensions", 0, GN_TRUE);
 
 /*
