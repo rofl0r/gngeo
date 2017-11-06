@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <string.h>
+#if defined(HAVE_LIBGEN_H)
+#include <libgen.h>
+#endif
 //#include <stdbool.h>
 #include "roms.h"
 #include "emu.h"
@@ -1319,7 +1322,7 @@ error:
 	return GN_FALSE;
 }
 
-ROM_DEF *dr_check_zip(const char *filename) {
+ROM_DEF *dr_check_zip(char *filename) {
 
 	char *z;
 	ROM_DEF *drv;

@@ -224,7 +224,7 @@ AM_CONDITIONAL(USE_WIZ,[test x$enable_wiz = xtrue])
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([errno.h limits.h malloc.h stddef.h stdlib.h string.h sys/time.h unistd.h])
+AC_CHECK_HEADERS([errno.h limits.h malloc.h stddef.h stdlib.h string.h sys/time.h unistd.h libgen.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
