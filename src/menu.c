@@ -606,7 +606,7 @@ int pbar_anim_thread(void *data) {
 		SDL_BlitSurface(pbar_logo, &src_r, menu_buf, &dst_r);
 
 		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
-# ifndef __APPLE__
+#ifndef __APPLE__
                 // macOS OpenGL call must be done from the thread
                 // that created the OpenGL context
 		screen_update();
@@ -616,7 +616,7 @@ int pbar_anim_thread(void *data) {
 	}
 	SDL_BlitSurface(gngeo_logo, NULL, pbar_logo, NULL);
 	SDL_BlitSurface(pbar_logo, &src_r, menu_buf, &dst_r);
-# ifndef __APPLE__
+#ifndef __APPLE__
 	screen_update();
 #endif
 	frame_skip(0);
@@ -1178,7 +1178,11 @@ int rom_browser_scanning_anim(void *data) {
 			draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y,
 					"Scanning");
 		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
+#ifndef __APPLE__
+                // macOS OpenGL call must be done from the thread
+                // that created the OpenGL context
 		screen_update();
+#endif
 		frame_skip(0);
 		i++;
 		if (i > 40)

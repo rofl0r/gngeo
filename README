@@ -24,10 +24,17 @@ Licence:
 
 REQUIREMENT : 
 	SDL-2.0.x and the libz
+	autoconf-archive to rebuild from git sources
 	optional: nasm 0.98 for i386 asm optimisation
+	optional: OpenGL for hardware accelerated blitters
 	You will also need a neogeo BIOS
 
 INSTALLATION :
+	If you are rebuilding from git, prepare the autotools scripts
+	automake -a -c
+	autoreconf -v
+
+	Build the emulator with
 	./configure && make
 	then 'make install' as root 
 

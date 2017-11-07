@@ -1,4 +1,4 @@
-SUBDIRS = src
+SUBDIRS = src gngeo.dat
 DIST_SUBDIRS = src gngeo.dat pnd
 dist_man_MANS = gngeo.1
 
