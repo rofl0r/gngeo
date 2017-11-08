@@ -31,8 +31,7 @@ REQUIREMENT :
 
 INSTALLATION :
 	If you are rebuilding from git, prepare the autotools scripts
-	automake -a -c
-	autoreconf -v
+	autoreconf -iv
 
 	Build the emulator with
 	./configure && make
