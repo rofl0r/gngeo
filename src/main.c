@@ -141,7 +141,11 @@ int main(int argc, char *argv[])
     }
 
     if (conf.debug)
+#ifdef HAVE_EMUDBG_H
+	    emudbg_loop();
+#else
 	    debug_loop();
+#endif
     else
 	    main_loop();
 

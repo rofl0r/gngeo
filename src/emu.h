@@ -129,6 +129,9 @@ Sint32 *joy_axe[2];
 Uint32 joy_numaxes[2];
 
 void debug_loop(void);
+#ifdef HAVE_EMUDBG_H
+void emudbg_loop(void);
+#endif
 void main_loop(void);
 void init_neo(void);
 void cpu_68k_dpg_step(void);

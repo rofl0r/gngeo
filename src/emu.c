@@ -55,6 +55,13 @@
 #include "menu.h"
 #include "event.h"
 
+#ifdef HAVE_EMUDBG_H
+#include <emudbg.h>
+#include "generator68k/generator.h"
+#include "generator68k/mem68k.h"
+#include "generator68k/cpu68k.h"
+#endif
+
 int frame;
 int nb_interlace = 256;
 int current_line;
@@ -738,3 +745,90 @@ void debug_loop(void) {
 	  a = cpu_68k_debuger(cpu_68k_dpg_step, /*dump_hardware_reg*/NULL);
 	} while (a != -1);
 }
+
+
+#ifdef HAVE_EMUDBG_H
+
+static uint8 fetch_byte(uint32 addr) {
+	return fetchbyte(addr);
+}
+
+static void store_byte(uint32 addr, uint8 value) {
+	storebyte(addr,value);
+}
+
+static uint32 fetch_register(uint32 num) {
+	if (num < 16) {
+		return regs.regs[num];
+	} else if (num == 16) {
+		return regs.sr.sr_int;
+	} else if (num == 17) {
+		return regs.pc;
+	} else {
+		return 0;
+	}
+}
+
+static void store_register(uint32 num, uint32 value) {
+}
+
+struct emudbg_api_t emu_api = {
+	0,
+	0,
+	fetch_byte, store_byte,
+	fetch_register, store_register,
+	(void(*)(uint32_t))add_bp,
+	(void(*)(uint32_t))del_bp,
+	clear_bps
+};
+
+struct emudbg_cmd_t emu_next_cmd = {
+	'c', 0, 0xffffff
+};
+
+void emudbg_loop(void) {
+	int dbg_connected=1;
+	int emu_interrupted=0;
+	emudbg_init(&emu_api);
+	emudbg_wait_for_client();
+	while(SDL_TRUE) {
+		uint32 pc;
+		if (dbg_connected) {
+			emudbg_server_loop(emu_interrupted, &emu_next_cmd);
+		} else {
+			/* after a disconnection, allow other debuggers to reconnect */
+			emudbg_wait_for_client();
+			dbg_connected=1;
+		}
+		switch (emu_next_cmd.next_run_command) {
+		case 's':
+			cpu_68k_dpg_step();
+			break;
+		case 'r':
+			pc=cpu_68k_getpc();
+			while(!emudbg_client_command_pending() &&
+			      check_bp(pc)!=SDL_TRUE &&
+			      pc>=emu_next_cmd.step_range_min &&
+			      pc<emu_next_cmd.step_range_max) {
+				cpu_68k_dpg_step();
+				pc=cpu_68k_getpc();
+			}
+			break;
+		case 'D':
+			emu_next_cmd.next_run_command='c';
+			emudbg_disconnect_from_client();
+			dbg_connected=0;
+			break;
+		case 'c':
+		default:
+			while(!emudbg_client_command_pending() &&
+			      check_bp(cpu_68k_getpc())!=SDL_TRUE) {
+				cpu_68k_dpg_step();
+			}
+			break;
+		}
+		emu_interrupted=1;
+	}
+}
+
+#endif
