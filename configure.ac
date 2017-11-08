@@ -277,6 +277,11 @@ AC_C_BIGENDIAN
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([atexit floor gettimeofday memset mkdir pow strchr strstr strtoul])
 
+# Checks for emudbg source-level debugging extension
+AC_CHECK_HEADERS([emudbg.h])
+AC_CHECK_LIB([emudbg], [emudbg_server_loop], [use_emudbg=true])
+AM_CONDITIONAL(USE_EMUDBG,[test x$use_emudbg = xtrue])
+
 
 # Check for processor.
   case $target_cpu in
