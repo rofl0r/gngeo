@@ -789,15 +789,16 @@ struct emudbg_cmd_t emu_next_cmd = {
 void emudbg_loop(void) {
 	int dbg_connected=1;
 	int emu_interrupted=0;
-	emudbg_init(&emu_api);
-	emudbg_wait_for_client();
+	void *ctx;
+	emudbg_init(&emu_api, &ctx);
+	emudbg_wait_for_client(ctx);
 	while(SDL_TRUE) {
 		uint32 pc;
 		if (dbg_connected) {
-			emudbg_server_loop(emu_interrupted, &emu_next_cmd);
+			emudbg_server_loop(ctx, emu_interrupted, &emu_next_cmd);
 		} else {
 			/* after a disconnection, allow other debuggers to reconnect */
-			emudbg_wait_for_client();
+			emudbg_wait_for_client(ctx);
 			dbg_connected=1;
 		}
 		switch (emu_next_cmd.next_run_command) {
@@ -806,7 +807,7 @@ void emudbg_loop(void) {
 			break;
 		case 'r':
 			pc=cpu_68k_getpc();
-			while(!emudbg_client_command_pending() &&
+			while(!emudbg_client_command_pending(ctx) &&
 			      check_bp(pc)!=SDL_TRUE &&
 			      pc>=emu_next_cmd.step_range_min &&
 			      pc<emu_next_cmd.step_range_max) {
@@ -816,12 +817,12 @@ void emudbg_loop(void) {
 			break;
 		case 'D':
 			emu_next_cmd.next_run_command='c';
-			emudbg_disconnect_from_client();
+			emudbg_disconnect_from_client(ctx);
 			dbg_connected=0;
 			break;
 		case 'c':
 		default:
-			while(!emudbg_client_command_pending() &&
+			while(!emudbg_client_command_pending(ctx) &&
 			      check_bp(cpu_68k_getpc())!=SDL_TRUE) {
 				cpu_68k_dpg_step();
 			}
