@@ -25,6 +25,8 @@
 
 #include "SDL.h"
 
+#include <stdio.h>
+
 typedef struct gfx_cache {
 	Uint8 *data;  /* The cache */
 	Uint32 size;  /* Tha allocated size of the cache */      

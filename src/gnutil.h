@@ -6,6 +6,8 @@
 #ifndef GNUTIL_H_
 #define GNUTIL_H_
 
+#include <stdio.h>
+
 char *get_gngeo_dir(void);
 void chomp(char *str);
 char *my_fgets(char *s, int size, FILE *stream);
