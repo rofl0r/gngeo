@@ -47,15 +47,10 @@ GN_ARG_ENABLE(wii,     [--enable-wii            Enable WII build])
 GN_ARG_ENABLE(rpi,     [--enable-rpi            Enable Raspberry Pi build])
 GN_ARG_ENABLE(pandora, [--enable-pandora        Enable PANDORA build])
 GN_ARG_ENABLE(win32,   [--enable-win32          Enable WIN32 build])
+GN_ARG_ENABLE(mingw,   [--enable-mingw          Enable MinGW build])
 GN_ARG_ENABLE(dingux,  [--enable-dingux         Enable DINGUX build])
 GN_ARG_ENABLE(embedded,[--enable-embedded       Enable Embedded directory structure])
 
-
-# Check for SDL
-SDL_VERSION=2.0.0
-AM_PATH_SDL2($SDL_VERSION,,AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!]))
-CFLAGS="$CFLAGS $SDL_CFLAGS"
-LIBS="$LIBS $SDL_LIBS"
 
 # Setup platform specific optimisation/source/cflags/libs/etc.
 if test "x$enable_gp2x" = xtrue ; then
@@ -101,11 +96,30 @@ if test "x$enable_win32" = xtrue ; then
    AC_DEFINE([WIN32],[1],[Define if you build for win32])
    NASMENV="--prefix_"
 fi
+if test "x$enable_mingw" = xtrue ; then
+   enable_embedded=true
+   with_emudbg=no
+   host=`uname -p`-w64-mingw32
+   datarootdir="${prefix}"
+   bindir="${prefix}"
+   mandir="${prefix}"/doc
+   CFLAGS="$CFLAGS -I/usr/${host}/include -I/usr/local/${host}/include"
+   CPPFLAGS="$CPPFLAGS -I/usr/${host}/include -I/usr/local/${host}/include"
+   LDFLAGS="$LDFLAGS -L/usr/${host}/lib -L/usr/local/${host}/lib"
+   export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/${host}/lib/pkgconfig"
+   AC_DEFINE([MINGW],[1],[Define if you build for MinGW])
+fi
 if test "x$enable_embedded" = xtrue ; then
    AC_DEFINE([EMBEDDED_FS],[1],[Define for embedded directory structure])
 fi
 
 # CFLAGS="$CFLAGS -DDATA_DIRECTORY=\"${pkgdatadir}\""
+
+# Check for SDL
+SDL_VERSION=2.0.0
+AM_PATH_SDL2($SDL_VERSION,,AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!]))
+CFLAGS="$CFLAGS $SDL_CFLAGS"
+LIBS="$LIBS $SDL_LIBS"
 
 # Checks for libraries.
 #AC_SUBST(LIBOBJS)
@@ -260,6 +274,8 @@ AM_CONDITIONAL(USE_DRZ80,[test x$use_drz80 = xtrue])
 AM_CONDITIONAL(USE_GUI,[test x$enable_gui = xtrue])
 AM_CONDITIONAL(USE_GP2X,[test x$enable_gp2x = xtrue])
 AM_CONDITIONAL(USE_WIZ,[test x$enable_wiz = xtrue])
+AM_CONDITIONAL(USE_MINGW,[test x$enable_mingw = xtrue])
+AM_CONDITIONAL(USE_GLSL,[test x$ng_cv_use_glsl = xtrue])
 
 # Checks for header files.
 AC_HEADER_DIRENT
@@ -278,8 +294,12 @@ AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([atexit floor gettimeofday memset mkdir pow strchr strstr strtoul])
 
 # Checks for emudbg source-level debugging extension
-AC_CHECK_HEADERS([emudbg.h])
-AC_CHECK_LIB([emudbg], [emudbg_server_loop], [use_emudbg=true])
+AC_ARG_WITH([emudbg],
+    AS_HELP_STRING([--without-emudbg], [Ignore emudbg source-level debugging extension]))
+AS_IF([test "x$with_emudbg" != "xno"],[
+   AC_CHECK_HEADERS([emudbg.h])
+   AC_CHECK_LIB([emudbg], [emudbg_server_loop], [use_emudbg=true])
+])
 AM_CONDITIONAL(USE_EMUDBG,[test x$use_emudbg = xtrue])
 
 

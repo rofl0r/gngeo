@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-noinst_PROGRAMS = def68k gen68k
+noinst_PROGRAMS = def68k$(EXEEXT) gen68k$(EXEEXT)
 BUILT_SOURCES = def68k-iibs.h def68k-funcs.h def68k-proto.h \
                 cpu68k-0.c cpu68k-1.c cpu68k-2.c cpu68k-3.c \
                 cpu68k-4.c cpu68k-5.c cpu68k-6.c cpu68k-7.c \
@@ -29,8 +29,8 @@ gcc_build_verbose = $(gcc_build_verbose_$(V))
 gcc_build_verbose_ = $(gcc_build_verbose_$(AM_DEFAULT_VERBOSITY))
 gcc_build_verbose_0 = @echo "  HCC    $@";
 
-def68k-proto.h def68k-funcs.h def68k-iibs.h : def68k def68k.def
-	$(AM_V_GEN)./def68k 2>&1 >/dev/null
+def68k-proto.h def68k-funcs.h def68k-iibs.h : def68k$(EXEEXT) def68k.def
+	$(AM_V_GEN)./def68k$(EXEEXT) 2>&1 >/dev/null
 
 cpu68k.c : def68k-proto.h
 
@@ -93,8 +93,8 @@ CPU_OBJ    = cpu68k-0.o  cpu68k-1.o  cpu68k-2.o  cpu68k-3.o  \
 	     cpu68k-8.o  cpu68k-9.o  cpu68k-a.o  cpu68k-b.o  \
 	     cpu68k-c.o  cpu68k-d.o  cpu68k-e.o  cpu68k-f.o
 
-$(CPU_SOURCE) : gen68k
-	$(AM_V_GEN)./gen68k 2>&1 >/dev/null
+$(CPU_SOURCE) : gen68k$(EXEEXT)
+	$(AM_V_GEN)./gen68k$(EXEEXT) 2>&1 >/dev/null
 
 $(CPU_OBJ) : %.o : %.c
 	$(AM_V_CC)$(COMPILE) -c $< -o $@

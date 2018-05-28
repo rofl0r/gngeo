@@ -1,3 +1,16 @@
 noinst_LIBRARIES = libblitter.a
 libblitter_a_SOURCES = glproc.h soft.c opengl.c glsl.c # overlay.c
-dist_pkgdata_DATA = noop.glsl noop.glslp
+
+if USE_GLSL
+if USE_MINGW
+shaderdir = $(datadir)/shaders
+else
+shaderdir = $(pkgdatadir)
+endif
+
+dist_shader_DATA = noop.glsl noop.glslp
+endif
+
+if USE_MINGW
+  AM_CFLAGS = -Dprintf=gn_log_printf -Dfprintf=gn_log_fprintf
+endif

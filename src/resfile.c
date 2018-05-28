@@ -38,6 +38,9 @@ int res_verify_datafile(char *file) {
 
 	if (!file) file=CF_STR(cf_get_item_by_name("datafile"));
 
+#ifdef MINGW
+	return GN_TRUE;
+#else
 	if (lstat(file,&sb)==-1) {
 		gn_set_error_msg("%s not found",file);
 		return GN_FALSE;
@@ -60,6 +63,7 @@ int res_verify_datafile(char *file) {
 	if (S_ISREG(sb.st_mode)) return GN_TRUE;
 	gn_set_error_msg("%s not a valid file",file);
 	return GN_FALSE;
+#endif
 
 
 }

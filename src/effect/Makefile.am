@@ -10,6 +10,10 @@ if HAVE_NASM
   libeffect_a_SOURCES += sai.c
 endif
 
+if USE_MINGW
+  AM_CFLAGS = -Dprintf=gn_log_printf -Dfprintf=gn_log_fprintf
+endif
+
 2xsaimmx.o effect_i386.o hq2x16.o hq3x16.o: %.o: %.asm
 	nasm -f elf -I $(srcdir)/ $< -o $@ 
 

@@ -52,6 +52,16 @@ if PROCESSOR_ARM
   gngeo_SOURCES += video_arm.s memcpy.S
 endif
 
+if USE_MINGW
+  AM_CFLAGS = -Dprintf=gn_log_printf -Dfprintf=gn_log_fprintf
+install-exec-local:
+	for dir in "$(DESTDIR)$(datadir)/conf" \
+		   "$(DESTDIR)$(datadir)/roms" \
+		   "$(DESTDIR)$(datadir)/save" ; do \
+	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
+	done
+endif
+
 if USE_GP2X
   gngeo_SOURCES += gp2x.h gp2x.c
 endif
