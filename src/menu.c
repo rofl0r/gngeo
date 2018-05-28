@@ -1272,6 +1272,7 @@ void init_rom_browser_menu(void) {
 				}
 				if (S_ISREG(filestat.st_mode)) {
 					/* GNO files */
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 					if (strstr(filename, ".gno") != NULL) {
 						printf("GNO %s\n",filename);
 						char *gnoname = dr_gno_romname(filename);
@@ -1288,6 +1289,7 @@ void init_rom_browser_menu(void) {
 						}
 						continue;
 					}
+#endif
 					if (strstr(filename, ".zip") == NULL)
 						continue;
 					i = 0;

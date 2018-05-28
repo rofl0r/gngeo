@@ -6,9 +6,6 @@
 #include "SDL_endian.h"
 #include <stdlib.h>
 #include <string.h>
-#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
-#include <zlib.h>
-#endif
 
 #include "memory.h"
 #include "state.h"
@@ -47,17 +44,6 @@ static int endian_flag=0x0;
 #define ROOTPATH "/PROGDIR/data/"
 #else
 #define ROOTPATH ""
-#endif
-
-#if !defined(HAVE_LIBZ) || !defined (HAVE_MMAP)
-#define gzopen fopen
-#define gzread(f,data,size) fread(data,size,1,f)
-#define gzwrite(f,data,size) fwrite(data,size,1,f)
-#define gzclose fclose
-#define gzFile FILE*
-#define gzeof feof
-#define gzseek fseek
-
 #endif
 
 //static ST_REG *reglist;

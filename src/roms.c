@@ -14,7 +14,7 @@
 #include "emu.h"
 #include "memory.h"
 //#include "unzip.h"
-#if defined(HAVE_LIBZ)// && defined (HAVE_MMAP)
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 #include "zlib.h"
 #endif
 #include "unzip.h"
@@ -1539,7 +1539,7 @@ int dr_load_game(char *name) {
 
 }
 
-#if defined(HAVE_LIBZ)//&& defined (HAVE_MMAP)
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 
 static int dump_region(FILE *gno, const ROM_REGION *rom, Uint8 id, Uint8 type,
 		Uint32 block_size) {
@@ -2027,6 +2027,7 @@ int load_game_config(char *rom_name) {
 	cf_reset_to_default();
 	cf_open_file(NULL); /* Reset possible previous setting */
 	if (rom_name) {
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 		if (strstr(rom_name,".gno")!=NULL) {
 			char *name=dr_gno_romname(rom_name);
 			if (name) {
@@ -2038,9 +2039,12 @@ int load_game_config(char *rom_name) {
 				return GN_FALSE;
 			}
 		} else {
+#endif
 			drconf=alloca(strlen(gpath)+strlen(rom_name)+strlen(".cf")+1);
 			sprintf(drconf,"%s%s.cf",gpath,rom_name);
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
 		}
+#endif
 		cf_open_file(drconf);
 	}
 	return GN_TRUE;
@@ -2058,10 +2062,12 @@ int init_game(char *rom_name) {
     /* open transpack if need */
     trans_pack_open(CF_STR(cf_get_item_by_name("transpack")));
 
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
     if (strstr(rom_name, ".gno") != NULL) {
         if (dr_open_gno(rom_name)==GN_FALSE)
         	return GN_FALSE;
     } else {
+#endif
 
         //open_rom(rom_name);
 	if (dr_load_game(rom_name) == GN_FALSE) {
@@ -2074,7 +2080,9 @@ int init_game(char *rom_name) {
             return GN_FALSE;
         }
 
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
     }
+#endif
 
     open_nvram(conf.game);
     open_memcard(conf.game);

@@ -1,7 +1,21 @@
 #ifndef _STATE_H_
 #define _STATE_H_
 
-#include "zlib.h"
+#if defined(HAVE_LIBZ) && defined (HAVE_MMAP)
+#include <zlib.h>
+#else
+#include <stdio.h>
+#define gzopen fopen
+#define gzread(f,data,size) fread(data,size,1,f)
+#define gzwrite(f,data,size) fwrite(data,size,1,f)
+#define gzclose fclose
+#define gzFile FILE*
+#define gzeof feof
+#define gzseek fseek
+
+#endif
+
+
 #include "SDL.h"
 //#include <stdbool.h>
 #if 0
