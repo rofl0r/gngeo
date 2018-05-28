@@ -29,7 +29,7 @@ void list_erase_all(LIST *list,void (*erasedata)(void *data)) {
 
 static LIST* insert_sort(LIST *list,void *data,int (*cmpdata)(void *a,void *b),int unique) {
         LIST *t=list,*pt=NULL,*res=list;
-    LIST *tmp=malloc(sizeof(list));
+    LIST *tmp=malloc(sizeof(LIST));
     tmp->data=data;
 
     for(t=list;t && cmpdata(data,t->data)>0;pt=t,t=t->next);
