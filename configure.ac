@@ -51,6 +51,9 @@ GN_ARG_ENABLE(mingw,   [--enable-mingw          Enable MinGW build])
 GN_ARG_ENABLE(dingux,  [--enable-dingux         Enable DINGUX build])
 GN_ARG_ENABLE(embedded,[--enable-embedded       Enable Embedded directory structure])
 
+# Specific path for GLEW, needed for GLSL support on OpenGL
+AC_ARG_WITH([glew],
+    AS_HELP_STRING([--with-glew], [Path the the OpenGL Extension Wrangler Library]))
 
 # Setup platform specific optimisation/source/cflags/libs/etc.
 if test "x$enable_gp2x" = xtrue ; then
@@ -107,6 +110,15 @@ if test "x$enable_mingw" = xtrue ; then
    CPPFLAGS="$CPPFLAGS -I/usr/${host}/include -I/usr/local/${host}/include"
    LDFLAGS="$LDFLAGS -L/usr/${host}/lib -L/usr/local/${host}/lib"
    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/${host}/lib/pkgconfig"
+   if test "x$with_glew" != "xno" ; then
+      GL_CFLAGS="-I${with_glew}/include $GL_CFLAGS"
+      GL_LDFLAGS="-L${with_glew}/bin/Release/x64"
+      case $target_cpu in
+        x86_64) GL_LDFLAGS="-L${with_glew}/bin/Release/x64" ;;
+        *)      GL_LDFLAGS="-L${with_glew}/bin/Release/Win32" ;;
+      esac
+      GL_LIBS="-lglew32 -lopengl32 $GL_LIBS"
+   fi
    AC_DEFINE([MINGW],[1],[Define if you build for MinGW])
 fi
 if test "x$enable_embedded" = xtrue ; then
@@ -232,18 +244,28 @@ pushdef([_AX_CHECK_GL_PROGRAM],
 # if defined(HAVE_WINDOWS_H) && defined(_WIN32)
 #   include <windows.h>
 # endif
-# ifdef HAVE_GL_GL_H
-#   include <GL/gl.h>
-# elif defined(HAVE_OPENGL_GL_H)
-#   include <OpenGL/gl.h>
+# if defined(MINGW)
+#     include <GL/glew.h>
 # else
-#   error no gl.h
+#   ifdef HAVE_GL_GL_H
+#     include <GL/gl.h>
+#   elif defined(HAVE_OPENGL_GL_H)
+#     include <OpenGL/gl.h>
+#   else
+#     error no gl.h
+#   endif
 # endif
 ]],[[glCreateProgram()]])])
 
 AX_CHECK_GL
 AM_CONDITIONAL(USE_OPENGL,[test "X$no_gl" != "Xyes"])
 
+backup_CFLAGS="$CFLAGS"
+backup_CPPFLAGS="$CPPFLAGS"
+backup_LDFLAGS="$LDFLAGS"
+CFLAGS="$CFLAGS $GL_CFLAGS"
+CPPFLAGS="$CPPFLAGS $GL_CFLAGS"
+LDFLAGS="$LDFLAGS $GL_LDFLAGS $GL_LIBS"
 # dnl if GL was detected, configure blitter and compile flags
 AS_IF([test "X$no_gl" != "Xyes"],[
 # dnl distinguish between OpenGL and OpenGL ES
@@ -251,9 +273,14 @@ AC_MSG_CHECKING([whether the OpenGL library is OpenGL ES])
 AC_LINK_IFELSE([_AX_CHECK_GL_PROGRAM],
 [AC_MSG_RESULT([no])
  AC_DEFINE([USE_GL2],[1],[Define to use alternative opengl blitter])
+ if test "x$enable_mingw" = xtrue ; then
+   glewname=glew32
+ else
+   glewname=GLEW
+ fi
  AC_CHECK_HEADERS(GL/glew.h)
- AC_CHECK_LIB(GLEW, glewInit,
-   [LIBS="$LIBS -lGLEW"
+ AC_CHECK_LIB(${glewname}, glewInit,
+   [LIBS="$LIBS -l${glewname}"
     ng_cv_use_glsl=yes])
 ],
 [AC_MSG_RESULT([yes])
@@ -263,6 +290,8 @@ AS_IF([test "x$ng_cv_use_glsl" = "xyes"],[
    AC_DEFINE([USE_GLSL],[1],[Define to use alternative glsl blitter])
 ])
 ])
+CFLAGS="$backup_CFLAGS"
+LDFLAGS="$backup_LDFLAGS"
 
 AM_CONDITIONAL(HAVE_NASM,[test x$have_nasm = xtrue])
 AM_CONDITIONAL(USE_STARSCREAM,[test x$use_starscream = xtrue])
