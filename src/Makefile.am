@@ -85,7 +85,7 @@ EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc \
              ym2610-940 getopt.h
 
 if USE_EMUDBG
-  gngeo_LDADD += -lemudbg
+  gngeo_LDADD += $(emudbg_LIBS)
 endif
 
 video_i386.o : video_i386.inc

@@ -790,8 +790,10 @@ void emudbg_loop(void) {
 	int dbg_connected=1;
 	int emu_interrupted=0;
 	void *ctx;
-	emudbg_init(&emu_api, &ctx);
+	int res=emudbg_init(&emu_api, &ctx);
+	printf("EMUDBG Initialized %d\n",res);
 	emudbg_wait_for_client(ctx);
+	printf("Client connection accepted\n");
 	while(SDL_TRUE) {
 		uint32 pc;
 		if (dbg_connected) {

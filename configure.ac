@@ -101,7 +101,6 @@ if test "x$enable_win32" = xtrue ; then
 fi
 if test "x$enable_mingw" = xtrue ; then
    enable_embedded=true
-   with_emudbg=no
    host=`uname -p`-w64-mingw32
    datarootdir="${prefix}"
    bindir="${prefix}"
@@ -326,8 +325,10 @@ AC_CHECK_FUNCS([atexit floor gettimeofday memset mkdir pow strchr strstr strtoul
 AC_ARG_WITH([emudbg],
     AS_HELP_STRING([--without-emudbg], [Ignore emudbg source-level debugging extension]))
 AS_IF([test "x$with_emudbg" != "xno"],[
-   AC_CHECK_HEADERS([emudbg.h])
-   AC_CHECK_LIB([emudbg], [emudbg_server_loop], [use_emudbg=true])
+   PKG_CHECK_MODULES([emudbg], [emudbg], [
+   AC_CHECK_HEADERS([emudbg.h], [use_emudbg=true])
+   ], [use_emudbg=false])
+   dnl AC_CHECK_LIB([emudbg], [emudbg_server_loop], [use_emudbg=true])
 ])
 AM_CONDITIONAL(USE_EMUDBG,[test x$use_emudbg = xtrue])
 
