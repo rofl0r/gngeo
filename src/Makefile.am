@@ -78,7 +78,7 @@ else
 endif
 
 if USE_OPENGL
-  gngeo_LDADD += $(GL_LDFLAGS) $(GL_LIBS)
+  gngeo_LDADD += $(GL_LIBS)
 endif
 
 EXTRA_DIST = c32.mac screen_i386.asm video_i386.asm video_i386.inc \

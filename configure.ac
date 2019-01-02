@@ -90,8 +90,8 @@ if test "x$enable_wii" = xtrue ; then
 fi
 if test "x$enable_rpi" = xtrue ; then
 	AC_DEFINE([RPI],[1],[Define if you build for Raspberry Pi])
-	GL_CFLAGS="-I /opt/vc/include"
-	GL_LDFLAGS="-L /opt/vc/lib"
+	GL_CFLAGS="-I/opt/vc/include"
+	LDFLAGS="-L/opt/vc/lib $LDFLAGS"
 	GL_LIBS="-lGLESv2"
 fi
 if test "x$enable_win32" = xtrue ; then
@@ -111,10 +111,9 @@ if test "x$enable_mingw" = xtrue ; then
    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/${host}/lib/pkgconfig"
    if test "x$with_glew" != "xno" ; then
       GL_CFLAGS="-I${with_glew}/include $GL_CFLAGS"
-      GL_LDFLAGS="-L${with_glew}/bin/Release/x64"
       case $target_cpu in
-        x86_64) GL_LDFLAGS="-L${with_glew}/bin/Release/x64" ;;
-        *)      GL_LDFLAGS="-L${with_glew}/bin/Release/Win32" ;;
+        x86_64) LDFLAGS="-L${with_glew}/bin/Release/x64 $LDFLAGS" ;;
+        *)      LDFLAGS="-L${with_glew}/bin/Release/Win32 $LDFLAGS" ;;
       esac
       GL_LIBS="-lglew32 -lopengl32 $GL_LIBS"
    fi
@@ -264,7 +263,7 @@ backup_CPPFLAGS="$CPPFLAGS"
 backup_LDFLAGS="$LDFLAGS"
 CFLAGS="$CFLAGS $GL_CFLAGS"
 CPPFLAGS="$CPPFLAGS $GL_CFLAGS"
-LDFLAGS="$LDFLAGS $GL_LDFLAGS $GL_LIBS"
+LDFLAGS="$LDFLAGS $GL_LIBS"
 # dnl if GL was detected, configure blitter and compile flags
 AS_IF([test "X$no_gl" != "Xyes"],[
 # dnl distinguish between OpenGL and OpenGL ES
