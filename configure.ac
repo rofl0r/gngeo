@@ -101,7 +101,7 @@ if test "x$enable_win32" = xtrue ; then
 fi
 if test "x$enable_mingw" = xtrue ; then
    enable_embedded=true
-   host=`uname -p`-w64-mingw32
+   host=`uname -m`-w64-mingw32
    datarootdir="${prefix}"
    bindir="${prefix}"
    mandir="${prefix}"/doc
