@@ -1,0 +1,19 @@
+Source: ngdevkit-gngeo
+Section: devel
+Priority: optional
+Maintainer: Damien Ciabrini <damien.ciabrini@gmail.com>
+Build-Depends: debhelper (>= 10), libsdl2-dev, emudbg-dev, autoconf-archive, libglew-dev
+Standards-Version: 4.1.2
+Homepage: https://github.com/dciabrin/gngeo
+Vcs-Git: https://github.com/dciabrin/gngeo.git
+
+Package: ngdevkit-gngeo
+Architecture: any
+Depends: libsdl2-2.0-0, ${shlibs:Depends}, ${misc:Depends}
+Description: A portable Neo-Geo emulator
+ This is a SDL2 fork of GnGeo, the portable Neo-Geo
+ emulator. It provides a couple of additional
+ features to the original GnGeo like GLSL blitter,
+ libretro pixel shader, source-level debugging.
+ It also targets additional platforms like macOS,
+ raspberry PI and native Windows 10.
