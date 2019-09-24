@@ -279,12 +279,12 @@ AC_LINK_IFELSE([_AX_CHECK_GL_PROGRAM],
  AC_CHECK_HEADERS(GL/glew.h)
  AC_CHECK_LIB(${glewname}, glewInit,
    [LIBS="$LIBS -l${glewname}"
-    ng_cv_use_glsl=yes])
+    ng_cv_use_glsl=true])
 ],
 [AC_MSG_RESULT([yes])
- ng_cv_use_glsl=yes]
+ ng_cv_use_glsl=true]
 )
-AS_IF([test "x$ng_cv_use_glsl" = "xyes"],[
+AS_IF([test "x$ng_cv_use_glsl" = "xtrue"],[
    AC_DEFINE([USE_GLSL],[1],[Define to use alternative glsl blitter])
 ])
 ])
