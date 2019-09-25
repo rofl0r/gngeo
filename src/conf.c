@@ -43,6 +43,9 @@
 #include "memory.h"
 #include "gnutil.h"
 
+#ifndef GNGEORC
+#define GNGEORC "gngeorc"
+#endif
 
 /* 
 
@@ -539,17 +542,17 @@ int cf_save_option(char *filename, char *optname,int flags) {
 
 	if (!conf_file) {
 #ifdef EMBEDDED_FS
-		int len = strlen("gngeorc") + strlen(ROOTPATH"conf/") + 1;
+		int len = strlen(GNGEORC) + strlen(ROOTPATH"conf/") + 1;
 		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, ROOTPATH"conf/gngeorc");
+		sprintf(conf_file, ROOTPATH"conf/"GNGEORC);
 #elif __AMIGA__
-		int len = strlen("gngeorc") + strlen("/PROGDIR/data/") + 1;
+		int len = strlen(GNGEORC) + strlen("/PROGDIR/data/") + 1;
 		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "/PROGDIR/data/gngeorc");
+		sprintf(conf_file, "/PROGDIR/data/"GNGEORC);
 #else /* POSIX */
-		int len = strlen("gngeorc") + strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
+		int len = strlen(GNGEORC) + strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
 		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "%s/.gngeo/gngeorc", getenv("HOME"));
+		sprintf(conf_file, "%s/.gngeo/"GNGEORC, getenv("HOME"));
 #endif
 	}
 	conf_file_dst = alloca(strlen(conf_file) + 4);
@@ -708,17 +711,17 @@ int cf_open_file(char *filename) {
 
 	if (!conf_file) {
 #ifdef EMBEDDED_FS
-		int len = strlen("gngeorc") + strlen(ROOTPATH"conf/") + 1;
+		int len = strlen(GNGEORC) + strlen(ROOTPATH"conf/") + 1;
 		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, ROOTPATH"conf/gngeorc");
+		sprintf(conf_file, ROOTPATH"conf/"GNGEORC);
 #elif __AMIGA__
-		int len = strlen("gngeorc") + strlen("/PROGDIR/data/") + 1;
+		int len = strlen(GNGEORC) + strlen("/PROGDIR/data/") + 1;
 		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "/PROGDIR/data/gngeorc");
+		sprintf(conf_file, "/PROGDIR/data/"GNGEORC);
 #else
-		int len = strlen("gngeorc") + strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
+		int len = strlen(GNGEORC) + strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
 		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "%s/.gngeo/gngeorc", getenv("HOME"));
+		sprintf(conf_file, "%s/.gngeo/"GNGEORC, getenv("HOME"));
 #endif
 	}
 	if ((f = fopen(conf_file, "rb")) == 0) {
