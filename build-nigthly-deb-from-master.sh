@@ -15,4 +15,5 @@ git archive --format=tar --prefix=${PROJECT}-${DEB_VERSION}/ origin/ngdevkit | g
 tar xf ${PROJECT}_${DEB_VERSION}.orig.tar.gz
 cd ${PROJECT}-${DEB_VERSION}
 cp -a ../debian .
+yes | mk-build-deps --install --remove
 dpkg-buildpackage -rfakeroot -us -uc
