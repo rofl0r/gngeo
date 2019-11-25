@@ -8,7 +8,7 @@ Homepage: https://github.com/dciabrin/gngeo
 Vcs-Git: https://github.com/dciabrin/gngeo.git
 
 Package: ngdevkit-gngeo
-Architecture: any
+Architecture: amd64
 Depends: libsdl2-2.0-0, ${shlibs:Depends}, ${misc:Depends}
 Description: A portable Neo-Geo emulator
  This is a SDL2 fork of GnGeo, the portable Neo-Geo
