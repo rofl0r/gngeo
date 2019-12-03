@@ -1,0 +1,53 @@
+language: c
+dist: bionic
+matrix:
+  include:
+    - name: "Linux"
+      os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources: &sources
+            - sourceline: 'ppa:dciabrin/ngdevkit'
+          packages:
+            - emudbg-dev
+            - autoconf-archive
+            - libsdl2-dev
+            - libglew-dev
+      env:
+      - BUILD_PARAMS=""
+      - PREFIX="/usr"
+      - PKGDATADIR="/usr/share/ngdevkit-gngeo"
+    - name: "Windows cross-compiled"
+      os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources: *sources
+          packages:
+            - emudbg-dev
+            - autoconf-archive
+            - libsdl2-dev
+            - mingw-w64
+            - libz-mingw-w64-dev
+      env:
+      - BUILD_PARAMS="--host=x86_64-w64-mingw32 --enable-mingw"
+      - WINDEPS="/tmp/deps"
+      - PREFIX="/tmp/win"
+      - PKGDATADIR="/tmp/win/share"
+      - EXTRA_SETUP="unset CC"
+      - SDL="https://www.libsdl.org/release/SDL2-devel-2.0.8-mingw.tar.gz"
+      - GLEW="https://downloads.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip"
+before_script:
+  - if [ -n "$WINDEPS" ]; then mkdir -p $WINDEPS; cd $WINDEPS; fi
+  - if [ -n "$SDL" ]; then curl -L "$SDL" | tar zx; sudo cp -af SDL2-*/*-mingw32 /usr/local; fi
+  - if [ -n "$GLEW" ]; then curl -LO "$GLEW"; unzip $(basename "$GLEW"); fi
+
+script:
+  - cd $TRAVIS_BUILD_DIR
+  - autoreconf -iv
+  - if [ -n "$GLEW" ]; then EXTRA_PARAMS+=" --with-glew="$(find ${WINDEPS} -name 'glew*' -type d); fi
+  - eval "$EXTRA_SETUP"
+  - ./configure $BUILD_PARAMS --prefix=$PREFIX --program-prefix=ngdevkit- CFLAGS='-DGNGEORC=\"ngdevkit-gngeorc\"' $EXTRA_PARAMS
+  - make pkgdatadir=$PKGDATADIR
+  - sudo make install pkgdatadir=$PKGDATADIR
