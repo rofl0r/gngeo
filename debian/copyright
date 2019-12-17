@@ -2,13 +2,17 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: gngeo
 Source: https://github.com/dciabrin/gngeo
 
+Files: *
+Copyright: Mathieu PEPONAS <pepone@altern.org>
+License: GnGeo
+
 Files: src/mamez80/z80*
 Copyright: 1998,1999,2000 Juergen Buchmueller
 License: MAME
 
 Files: src/cyclone/C*
 Copyright: 2004 Dave
-Copyright: 2005-2007 notaz
+ 2005-2007 notaz
 License: Cyclone
 
 Files: src/drz80/Dr*
@@ -19,16 +23,16 @@ Files: src/raze/raze*
 Copyright: 1999 Richard Mitton <richard.mitton@bigfoot.com>
 License: RAZE
 
-Files: src/star/star*, src/star/cpu*
+Files: src/star/star*
+Copyright: 1997, 1998, 1999 Neill Corlett <corlett@elwha.nrrc.ncsu.edu>
+License: StarScream
+
+Files: src/star/cpu*
 Copyright: 1997, 1998, 1999 Neill Corlett <corlett@elwha.nrrc.ncsu.edu>
 License: StarScream
 
 Files: src/blitter/glsl.c
 Copyright: Damien Ciabrini <damien.ciabrini@gmail.com>
-License: GnGeo
-
-Files: *
-Copyright: Mathieu PEPONAS <pepone@altern.org>
 License: GnGeo
 
 Files: debian/*
@@ -55,7 +59,7 @@ License: LGPL-3.0+
 License: MAME
  Redistribution and use of the MAME code or any derivative works are
  permitted provided that the following conditions are met:
-
+ .
     * Redistributions may not be sold, nor may they be used in a
       commercial product or activity.
     * Redistributions that are modified from the original source
