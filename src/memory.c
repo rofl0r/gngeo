@@ -524,13 +524,22 @@ LONG_STORE(mem68k_store_sram)
 ;
 
 /**** PALETTE ****/
-/*static __inline__ */Uint16 convert_pal(Uint16 npal) {
-    int r = 0, g = 0, b = 0;
+/*static __inline__ */Uint32 convert_pal(Uint16 npal) {
+    int r = 0, g = 0, b = 0, dark = 0;
     r = ((npal >> 7) & 0x1e) | ((npal >> 14) & 0x01);
     g = ((npal >> 3) & 0x1e) | ((npal >> 13) & 0x01);
     b = ((npal << 1) & 0x1e) | ((npal >> 12) & 0x01);
+    dark = ((npal >> 15) & 0x01) ^ 1;
 
+#if !defined(I386_ASM) && !defined(PROCESSOR_ARM)
+    /* 2^6 bits components (neogeo) -> 2^8 bits components (RGB24) */
+    r = (r << 1 | dark) << 2;
+    g = (g << 1 | dark) << 2;
+    b = (b << 1 | dark) << 2;
+    return (r << 16) + (g << 8) + b;
+#else
     return (r << 11) + (g << 6) + b;
+#endif
 }
 
 void update_all_pal(void) {
