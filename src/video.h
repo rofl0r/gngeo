@@ -67,6 +67,16 @@ typedef struct VIDEO {
     GFX_CACHE spr_cache;
 }VIDEO;
 
+#if !defined(I386_ASM) && !defined(PROCESSOR_ARM)
+/* RGBA 32bits per pixel, entire Neo Geo palette (65536 colors) */
+typedef unsigned int buffer_pixel_t;
+#define PIXEL_PITCH (buffer->pitch >> 2)
+#else
+/* optimized ASM for RGB 16bits per pixel, reduced color palette */
+typedef unsigned short buffer_pixel_t;
+#define PIXEL_PITCH (buffer->pitch >> 1)
+#endif
+
 #define RASTER_LINES 261
 
 extern unsigned int neogeo_frame_counter;

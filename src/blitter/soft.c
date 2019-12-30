@@ -27,6 +27,12 @@ static SDL_Rect screen_rect =	{ 0,  0, 304, 224};
 #endif
 static int vsync;
 
+#if !defined(I386_ASM) && !defined(PROCESSOR_ARM)
+#define RGB24_PIXELS 1
+#define UPDATE_VISIBLE_AREA (visible_area.w>>0)
+#else
+#define UPDATE_VISIBLE_AREA (visible_area.w>>1)
+#endif
 
 int
 blitter_soft_init()
@@ -139,11 +145,19 @@ blitter_soft_init()
 	// for preserving aspect when scaling
 	SDL_RenderSetLogicalSize(renderer, width, height);
 	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+#ifndef RGB24_PIXELS
 	texture = SDL_CreateTexture(renderer,
 				    SDL_PIXELFORMAT_RGB565,
 				    SDL_TEXTUREACCESS_STREAMING,
 				    width, height);
 	screen = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 16, 0xF800, 0x7E0, 0x1F, 0);
+#else
+	texture = SDL_CreateTexture(renderer,
+				    SDL_PIXELFORMAT_ARGB8888,
+				    SDL_TEXTUREACCESS_STREAMING,
+				    width, height);
+	screen = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32, 0, 0, 0, 0);
+#endif
 	//SDL_ShowCursor(SDL_DISABLE);
 #endif
 	if (!screen) return GN_FALSE;
@@ -155,19 +169,20 @@ blitter_soft_init()
 void 
 update_double()
 {
-	Uint16 *src, *dst;
+	buffer_pixel_t *src, *dst;
 	Uint32 s, d;
-	Uint8 w, h;
+	buffer_pixel_t w, h;
 	
-	src = (Uint16 *)buffer->pixels + visible_area.x + (buffer->w << 4);// LeftBorder + RowLength * UpperBorder
+	src = (buffer_pixel_t *)buffer->pixels + visible_area.x + (buffer->w << 4);// LeftBorder + RowLength * UpperBorder
 
-	dst = (Uint16 *)screen->pixels + yscreenpadding;
+	dst = (buffer_pixel_t *)screen->pixels + yscreenpadding;
 	
 	for(h = visible_area.h; h > 0; h--)
 	{
-		for(w = visible_area.w>>1; w > 0; w--)
+		for(w = UPDATE_VISIBLE_AREA; w > 0; w--)
 		{		
 			s = *(Uint32 *)src;
+#ifndef RGB24_PIXELS
 #ifdef WORDS_BIGENDIAN
 			d = (s & 0xFFFF0000) + ((s & 0xFFFF0000)>>16);
 			*(Uint32 *)(dst) = d;
@@ -185,10 +200,18 @@ update_double()
 			*(Uint32 *)(dst+2) = d;
 			*(Uint32 *)(dst+(visible_area.w<<1)+2) = d;
 				
-
-#endif			
 			dst += 4;
 			src += 2;
+
+#endif
+#else
+			*(buffer_pixel_t *)(dst) = s;
+			*(buffer_pixel_t *)(dst+1) = s;
+			*(buffer_pixel_t *) (dst + (visible_area.w << 1)) = s;
+			*(buffer_pixel_t *) (dst + (visible_area.w << 1)+1) = s;
+			dst += 2;
+			src += 1;
+#endif
 		}
 		//memcpy(dst,dst-(visible_area.w<<1),(visible_area.w<<2));
 		src += (visible_area.x<<1);		
@@ -200,18 +223,19 @@ update_double()
 void 
 update_triple()
 {
-	Uint16 *src, *dst;
+	buffer_pixel_t *src, *dst;
 	Uint32 s, d;
-	Uint8 w, h;
+	buffer_pixel_t w, h;
 	
-	src = (Uint16 *)buffer->pixels + visible_area.x + (buffer->w << 4);// LeftBorder + RowLength * UpperBorder
-	dst = (Uint16 *)screen->pixels + yscreenpadding;
+	src = (buffer_pixel_t *)buffer->pixels + visible_area.x + (buffer->w << 4);// LeftBorder + RowLength * UpperBorder
+	dst = (buffer_pixel_t *)screen->pixels + yscreenpadding;
 	
 	for(h = visible_area.h; h > 0; h--)
 	{
-		for(w = visible_area.w>>1; w > 0; w--)
+		for(w = UPDATE_VISIBLE_AREA; w > 0; w--)
 		{		
 			s = *(Uint32 *)src;
+#ifndef RGB24_PIXELS
 #ifdef WORDS_BIGENDIAN
 			d = (s & 0xFFFF0000) + ((s & 0xFFFF0000)>>16);
 			*(Uint32 *)(dst) = d;
@@ -244,6 +268,19 @@ update_triple()
 #endif			
 			dst += 6;
 			src += 2;
+#else
+			*(buffer_pixel_t *)(dst) = s;
+			*(buffer_pixel_t *)(dst+1) = s;
+			*(buffer_pixel_t *)(dst+2) = s;
+			*(buffer_pixel_t *) (dst + (visible_area.w * 3)) = s;
+			*(buffer_pixel_t *) (dst + (visible_area.w * 3)+1) = s;
+			*(buffer_pixel_t *) (dst + (visible_area.w * 3)+2) = s;
+			*(buffer_pixel_t *) (dst + (visible_area.w *6)) = s;
+			*(buffer_pixel_t *) (dst + (visible_area.w *6)+1) = s;
+			*(buffer_pixel_t *) (dst + (visible_area.w *6)+2) = s;
+			dst += 3;
+			src += 1;
+#endif
 		}
 		src += (visible_area.x<<1);		
 		dst += (visible_area.w*6);
@@ -280,7 +317,11 @@ blitter_soft_update()
 			
 		}
 
+#ifndef RGB24_PIXELS
   SDL_UpdateTexture(texture, NULL, screen->pixels, screen->w*2);
+#else
+  SDL_UpdateTexture(texture, NULL, screen->pixels, screen->w*4);
+#endif
   SDL_RenderClear(renderer);
   SDL_RenderCopy(renderer, texture, NULL, NULL);
   SDL_RenderPresent(renderer);

@@ -322,7 +322,7 @@ static __inline__ void draw_fix_char(unsigned char *buf, int start, int end) {
 	unsigned int *gfxdata, myword;
 	int x, y, yy;
 	unsigned char col;
-	unsigned short *br;
+	buffer_pixel_t *br;
 	unsigned int *paldata;
 	unsigned int byte1, byte2;
 	int banked, garouoffsets[32];
@@ -380,7 +380,7 @@ static __inline__ void draw_fix_char(unsigned char *buf, int start, int end) {
 
 			if ((byte1 >= (memory.rom.game_sfix.size >> 5)) || (fix_usage[byte1] == 0x00)) continue;
 
-			br = (unsigned short*) buf + ((y << 3)) * buffer->w + (x << 3) + 16;
+			br = (buffer_pixel_t*) buf + ((y << 3)) * buffer->w + (x << 3) + 16;
 #ifdef PROCESSOR_ARM
 			draw_one_char_arm(byte1, byte2, br);
 #elif I386_ASM

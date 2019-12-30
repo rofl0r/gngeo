@@ -445,8 +445,12 @@ void init_sdl(void) {
 	exit(-1);
     }
 
+#if !defined(I386_ASM) && !defined(PROCESSOR_ARM)
+    buffer = SDL_CreateRGBSurface(surface_type, 352, 256, 32, 0, 0, 0, 0);
+#else
     buffer = SDL_CreateRGBSurface(surface_type, 352, 256, 16, 0xF800, 0x7E0,
 				  0x1F, 0);
+#endif
     SDL_FillRect(buffer,NULL,SDL_MapRGB(buffer->format,0xE5,0xE5,0xE5));
 
     fontbuf = SDL_CreateRGBSurfaceFrom(font_image.pixel_data, font_image.width, font_image.height
