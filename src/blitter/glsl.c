@@ -21,6 +21,10 @@
 #include "../conf.h"
 #include "../gnutil.h"
 
+#if !defined(I386_ASM) && !defined(PROCESSOR_ARM)
+#define RGB24_PIXELS 1
+#endif
+
 /*
  * Libretro's GLSL preset
  * https://github.com/libretro/docs/blob/master/docs/specs/shader.md
@@ -538,9 +542,14 @@ blitter_glsl_init()
         conf.res_x = current_window_width;
 	conf.res_y = current_window_height;
 
-        // the surface that  that will be uploaded
+        // the surface that will be uploaded
+#ifndef RGB24_PIXELS
         input_pixels = SDL_CreateRGBSurface(SDL_SWSURFACE, screen_rect.w, screen_rect.h,
 					    16, 0xF800, 0x7E0, 0x1F, 0);
+#else
+        input_pixels = SDL_CreateRGBSurface(SDL_SWSURFACE, screen_rect.w, screen_rect.h,
+					    32, 0, 0, 0, 0);
+#endif
 
 	window = SDL_CreateWindow("GnGeo",
                                   SDL_WINDOWPOS_UNDEFINED,
@@ -690,8 +699,13 @@ blitter_glsl_update()
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, input_tex);
+#ifndef RGB24_PIXELS
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screen_rect.w, screen_rect.h,
 		     0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, input_pixels->pixels);
+#else
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screen_rect.w, screen_rect.h,
+		     0, GL_BGRA, GL_UNSIGNED_BYTE, input_pixels->pixels);
+#endif
 
 	// render: TEX -> (pass1_prog) -> FBO -> ... -> (pass2_prog) -> OUTPUT
 	for (i=0; i<nb_passes; i++) {

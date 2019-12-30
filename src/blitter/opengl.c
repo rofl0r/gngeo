@@ -16,6 +16,15 @@
 
 //#define TEXMIN256
 
+#if !defined(I386_ASM) && !defined(PROCESSOR_ARM)
+#define RGB24_PIXELS 1
+#define PIXEL_TYPE GL_BGRA
+#define PIXEL_SIZE GL_UNSIGNED_BYTE
+#else
+#define PIXEL_TYPE GL_RGB
+#define PIXEL_SIZE GL_UNSIGNED_SHORT_5_6_5
+#endif
+
 static float a;
 static float b;
 static float c;
@@ -141,7 +150,11 @@ blitter_opengl_init()
 		c = (240.0/256.0);
 */
 #ifdef USE_GL2
+#ifndef RGB24_PIXELS
 	    tex_opengl= SDL_CreateRGBSurface(SDL_SWSURFACE, 512, 256, 16, 0xF800, 0x7E0, 0x1F, 0);
+#else
+	    tex_opengl= SDL_CreateRGBSurface(SDL_SWSURFACE, 512, 256, 32, 0, 0, 0, 0);
+#endif
 #else
 	    pglPixelStorei(GL_UNPACK_ROW_LENGTH, 352);
 #endif
@@ -152,10 +165,18 @@ blitter_opengl_init()
 	    b = ((512.0/(float)visible_area.w) - 1.0f)*effect[neffect].x_ratio/2.0;
 	    c = (((float)visible_area.h/256.0))*effect[neffect].y_ratio/2.0;
 	    d = (((float)((visible_area.w<<1)-512)/256.0))*effect[neffect].y_ratio/2.0;
+#ifndef RGB24_PIXELS
 	    screen = SDL_CreateRGBSurface(SDL_SWSURFACE, visible_area.w<<1,  /*visible_area.h<<1*/512, 16, 0xF800, 0x7E0, 0x1F, 0);
+#else
+            screen = SDL_CreateRGBSurface(SDL_SWSURFACE, visible_area.w<<1,  /*visible_area.h<<1*/512, 32, 0, 0, 0, 0);
+#endif
 	    //printf("[opengl] create_screen %p\n",screen);
 #ifdef USE_GL2
+#ifndef RGB24_PIXELS
 	    tex_opengl= SDL_CreateRGBSurface(SDL_SWSURFACE, 1024, 512, 16, 0xF800, 0x7E0, 0x1F, 0);
+#else
+	    tex_opengl= SDL_CreateRGBSurface(SDL_SWSURFACE, 1024, 512, 32, 0, 0, 0, 0);
+#endif
 	    if (visible_area.w==320) {
 		glrectef.x=0;
 		glrectef.y=0;
@@ -200,7 +221,7 @@ blitter_opengl_update()
     if (neffect == 0) {
 #ifndef USE_GL2
 
-	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, buffer->pixels + (visible_area.x<<1));
+	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, PIXEL_TYPE, PIXEL_SIZE, buffer->pixels + (visible_area.x<<1));
 	pglBegin(GL_QUADS);
 	//pglTexCoord2f(16.0f/256.0f, 16.0f/256.0f);
 	//pglVertex2f	(-1.0f, 1.0f);
@@ -217,7 +238,7 @@ blitter_opengl_update()
 	pglVertex2f	(-1.0f, -1.0f);
 	pglEnd();
 				
-	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 64, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, buffer->pixels + 512+ (visible_area.x<<1));
+	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 64, 256, 0, PIXEL_TYPE, PIXEL_SIZE, buffer->pixels + 512+ (visible_area.x<<1));
 	pglBegin(GL_QUADS);
 	pglTexCoord2f(0.0f, 16.0f/256.0f);
 	pglVertex2f	(VALA, 1.0f);
@@ -234,7 +255,7 @@ blitter_opengl_update()
 
 #else
 	SDL_BlitSurface(buffer, &visible_area, tex_opengl, NULL);
-	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 512, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, tex_opengl->pixels);
+	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 512, 256, 0, PIXEL_TYPE, PIXEL_SIZE, tex_opengl->pixels);
 
 	pglBegin(GL_QUADS);
 	pglTexCoord2f(0.0f, 0.0f);
@@ -256,7 +277,7 @@ blitter_opengl_update()
     else
     {		
 #ifndef USE_GL2
-	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, screen->pixels );
+	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, PIXEL_TYPE, PIXEL_SIZE, screen->pixels );
 	pglBegin(GL_QUADS);
 	pglTexCoord2f(0.0f, 0.0f);
 	pglVertex2f	(-1.0f, 1.0f);
@@ -271,7 +292,7 @@ blitter_opengl_update()
 	pglVertex2f	(-1.0f, 0.0f);
 	pglEnd();
 		
-	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, screen->pixels + 512 );
+	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, PIXEL_TYPE, PIXEL_SIZE, screen->pixels + 512 );
 	pglBegin(GL_QUADS);
 	pglTexCoord2f(0.0f, 0.0f);
 	pglVertex2f	(a, 1.0f);
@@ -286,7 +307,7 @@ blitter_opengl_update()
 	pglVertex2f	(a, 0.0f);
 	pglEnd();
 				
-	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, screen->pixels + 1024 );
+	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, PIXEL_TYPE, PIXEL_SIZE, screen->pixels + 1024 );
 	pglBegin(GL_QUADS);
 	pglTexCoord2f(0.0f, 0.0f);
 	pglVertex2f	(b, 1.0f);
@@ -301,7 +322,7 @@ blitter_opengl_update()
 	pglVertex2f	(b, 0.0f);
 	pglEnd();	
 				
-	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, screen->pixels + (visible_area.w<<2) * 224 );
+	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, PIXEL_TYPE, PIXEL_SIZE, screen->pixels + (visible_area.w<<2) * 224 );
 	pglBegin(GL_QUADS);
 	pglTexCoord2f(0.0f, 0.0f);
 	pglVertex2f	(-1.0f, 0.0f);
@@ -316,7 +337,7 @@ blitter_opengl_update()
 	pglVertex2f	(-1.0f, -1.0f);
 	pglEnd();
 				
-	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, screen->pixels + (visible_area.w<<2) * 224 + 512 );
+	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, PIXEL_TYPE, PIXEL_SIZE, screen->pixels + (visible_area.w<<2) * 224 + 512 );
 	pglBegin(GL_QUADS);		
 	pglTexCoord2f(0.0f, 0.0f);
 	pglVertex2f	(a, 0.0f);
@@ -331,7 +352,7 @@ blitter_opengl_update()
 	pglVertex2f	(a, -1.0f);
 	pglEnd();
 		
-	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, screen->pixels + (visible_area.w<<2) * 224 + 1024 );
+	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, PIXEL_TYPE, PIXEL_SIZE, screen->pixels + (visible_area.w<<2) * 224 + 1024 );
 	pglBegin(GL_QUADS);
 	pglTexCoord2f(0.0f, 0.0f);
 	pglVertex2f	(b, 0.0f);
@@ -347,7 +368,7 @@ blitter_opengl_update()
 	pglEnd();
 #else
 	SDL_BlitSurface(screen, &glrectef, tex_opengl, NULL);
-	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 1024, 512, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, tex_opengl->pixels);
+	pglTexImage2D(GL_TEXTURE_2D, 0, 3, 1024, 512, 0, PIXEL_TYPE, PIXEL_SIZE, tex_opengl->pixels);
 
 	pglBegin(GL_QUADS);
 	pglTexCoord2f(0.0f, 0.0f);
