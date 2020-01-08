@@ -1,0 +1,36 @@
+# Build a GnGeo windows installer with NSIS
+#
+
+CC = @CC@
+CURL = @CURL@
+UNZIP = @UNZIP@
+MAKENSIS = @MAKENSIS@
+
+
+ZLIB_DLL=$(shell $(CC) -print-file-name=zlib1.dll)
+NSISUNZ_URL=https://nsis.sourceforge.io/mediawiki/images/1/1c/Nsisunz.zip
+# SDL2_URL must be passed as argument
+# GLEW_URL must be passed as argument
+# e.g. make SDL2_URL="http://libsdl.org/release/SDL2-2.0.10-win32-x64.zip" GLEW_URL="http://downloads.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip"
+
+all: ngdk-gngeo-inst.exe
+
+Nsisunz.zip:
+	$(CURL) -sL $(NSISUNZ_URL) -o $@
+
+nsisunz.dll: Nsisunz.zip
+	$(UNZIP) -p $< nsisunz/Release/nsisunz.dll > $@
+
+zlib1.dll:
+	cp $(ZLIB_DLL) .
+
+ngdk-gngeo-inst.exe: gngeo.nsi zlib1.dll nsisunz.dll
+	$(MAKENSIS) -DSDL2_URL="$(SDL2_URL)" -DGLEW_URL="$(GLEW_URL)" $<
+
+clean:
+	rm -f zlib1.dll ngdk-gngeo-inst.exe Nsisunz.zip nsisunz.dll
+
+distclean: clean
+	rm -f Makefile *~
+
+.PHONY: clean distclean
