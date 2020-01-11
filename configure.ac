@@ -118,6 +118,9 @@ if test "x$enable_mingw" = xtrue ; then
       GL_LIBS="-lglew32 -lopengl32 $GL_LIBS"
    fi
    AC_DEFINE([MINGW],[1],[Define if you build for MinGW])
+   AC_PATH_PROG([CURL], [curl])
+   AC_PATH_PROG([UNZIP], [unzip])
+   AC_PATH_PROG([MAKENSIS], [makensis])
 fi
 if test "x$enable_embedded" = xtrue ; then
    AC_DEFINE([EMBEDDED_FS],[1],[Define for embedded directory structure])
@@ -404,6 +407,7 @@ AC_CONFIG_LINKS([src/generator68k/def68k.def:src/generator68k/def68k.def])
 AC_CONFIG_FILES([Makefile
                  gngeo.dat/Makefile
                  pnd/Makefile
+                 nsis/Makefile
                  src/Makefile
                  src/raze/Makefile
                  src/star/Makefile
