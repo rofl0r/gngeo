@@ -2,6 +2,7 @@
 ; this file expects the following variables to be defined
 ; SDL2_URL - URL to download SDL2 from. Has to use a HTTP scheme
 ; GLEW_URL - URL to download GLEW from. Has to use a HTTP scheme
+; INSTALLER_NAME - Name of the generated installer program
 
 ; extract version number of dependencies
 ; SDL2: http://libsdl.org/release/SDL2-<SDL2_VERSION>-win32-x64.zip
@@ -18,7 +19,7 @@
 !define TMPDIR "$TEMP\ngdevkit-gngeo"
 
 Name "${NAME}"
-OutFile "ngdk-gngeo-inst.exe"
+OutFile "${INSTALLER_NAME}"
 
 ; dest dir selection
 InstallDir "$LOCALAPPDATA\${NAME}"

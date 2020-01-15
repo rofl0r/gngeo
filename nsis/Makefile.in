@@ -13,7 +13,9 @@ NSISUNZ_URL=https://nsis.sourceforge.io/mediawiki/images/1/1c/Nsisunz.zip
 # GLEW_URL must be passed as argument
 # e.g. make SDL2_URL="http://libsdl.org/release/SDL2-2.0.10-win32-x64.zip" GLEW_URL="http://downloads.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip"
 
-all: ngdk-gngeo-inst.exe
+INSTALLER_NAME=setup-ngdk-gngeo.exe
+
+all: $(INSTALLER_NAME)
 
 Nsisunz.zip:
 	$(CURL) -sL $(NSISUNZ_URL) -o $@
@@ -24,13 +26,13 @@ nsisunz.dll: Nsisunz.zip
 zlib1.dll:
 	cp $(ZLIB_DLL) .
 
-ngdk-gngeo-inst.exe: gngeo.nsi zlib1.dll nsisunz.dll
-	$(MAKENSIS) -DSDL2_URL="$(SDL2_URL)" -DGLEW_URL="$(GLEW_URL)" $<
+$(INSTALLER_NAME): gngeo.nsi zlib1.dll nsisunz.dll
+	$(MAKENSIS) -DSDL2_URL="$(SDL2_URL)" -DGLEW_URL="$(GLEW_URL)" -DINSTALLER_NAME="$(INSTALLER_NAME)" $<
 
 clean:
-	rm -f zlib1.dll ngdk-gngeo-inst.exe Nsisunz.zip nsisunz.dll
+	rm -f zlib1.dll $(INSTALLER_NAME) Nsisunz.zip nsisunz.dll *~
 
 distclean: clean
-	rm -f Makefile *~
+	rm -f Makefile
 
 .PHONY: clean distclean
