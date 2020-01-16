@@ -37,11 +37,11 @@ jobs:
         apt:
           sources: *sources
           packages:
-            - emudbg-dev
             - autoconf-archive
             - libsdl2-dev
             - mingw-w64
             - libz-mingw-w64-dev
+            - emudbg-mingw-w64-dev
             - nsis
       env: &winenv
       - PREFIX="/tmp/build/win"
@@ -58,7 +58,7 @@ jobs:
         - cd $TRAVIS_BUILD_DIR
         - autoreconf -iv
         - unset CC
-        - ./configure --host=x86_64-w64-mingw32 --enable-mingw --prefix=$PREFIX --program-prefix=ngdevkit- CFLAGS='-DGNGEORC=\"ngdevkit-gngeorc\"' $EXTRA_PARAMS --with-glew=$(find ${WINDEPS} -name 'glew*' -type d)
+        - ./configure --host=x86_64-w64-mingw32 --enable-mingw --prefix=$PREFIX --program-prefix=ngdevkit- CFLAGS='-DGNGEORC=\"ngdevkit-gngeorc\"' PKG_CONFIG_PATH=/usr/x86_64-w64-mingw32/lib/pkgconfig --with-glew=$(find ${WINDEPS} -name 'glew*' -type d)
         - make pkgdatadir=$PKGDATADIR
         - make install pkgdatadir=$PKGDATADIR
         - make -C nsis all SDL2_URL="$NSIS_SDL2" GLEW_URL="$NSIS_GLEW" INSTALLER_NAME=setup-ngdevkit-gngeo-nightly.exe && cp nsis/setup-ngdevkit-gngeo-nightly.exe $PREFIX
