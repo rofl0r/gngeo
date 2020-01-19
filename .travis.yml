@@ -8,6 +8,10 @@ if: tag IS blank
 cache:
   directories: /tmp/build
 
+env:
+  global:
+    secure: "Ablu5FZ0NIZ8uubdGqnD+QeDeRocsoP64S1YhDa/c4Vv/jGsC76VzGqHR4aD1y2fRx4EVxW85ndUKlrkeQZtVhE59n/pTMJG9a8KOAFdFOsm/OC86VQywWRKSl3n4oVwhByPyFVemcUk17TEk9BxNI8JKQvrxr7cQf9ofsHdS8sLo3LOgF85yY+PzLHafKGfT+OtpevzZP2LQOvdwrT4fbMHnemFOwNkgzdoMi97ucN08vO1VW/q1i4TIz+CHa36hhP8aR/YW9e4kw9VMVPTevPExR0xd84hWYfWFB5FE8DtCE3YSkIJHf0H95W9MJI1d/pC73jfC3Ugw8Vm0C3tulGB72stCU1SGgePdp6tn38AiXOH7eiEmyk57UgMJAK5ptIJx6seTZz9+Eu1N3Q2gpDCgghwk5isk6xqQmg+m+hz46FTGUwhmi4NY1r98GLzqk++9rqXgYB4Aj0mQYw81TfHGNT1wYUZGvSKyDr9nGq88ZY21BQINf7JTUNhtOvgr7dsRTSCfAPTQbndt2Uxrk/ShxRCQbseN5Mh1yB0sFmMAATZSjU5CbGtu9IhvAoBP4kjJG45dST1ZrgipZvuLBkWQJMHmJhlkxOhOl4O4LtYyV25XRXp8IXH7R4Js5t7pKis0Lwt9o1kDQ6+7yttp7IlZLp9gNiY/T7SgC/eVuY="
+
 jobs:
   include:
     - stage: Tests
@@ -98,3 +102,11 @@ jobs:
         on:
           repo: dciabrin/gngeo
           branch: ngdevkit
+    - stage: Post-deploy
+      name: Clean up old nightly releases and tags
+      addons:
+        apt:
+          packages:
+            - jq
+      script: cd .travis && ./github-gc.sh --token="$GH_API_TOKEN" --tag-regex='^nightly-[0-9]+$'
+      if: type = push AND branch = ngdevkit
