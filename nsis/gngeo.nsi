@@ -50,7 +50,7 @@ Section "${NAME}"
   File "/oname=gngeo_data.zip" "../gngeo.dat/gngeo_data.zip"
   File "/oname=LICENSE" "../COPYING"
   CreateDirectory $INSTDIR\conf
-  CreateDirectory $INSTDIR\rom
+  CreateDirectory $INSTDIR\roms
   CreateDirectory $INSTDIR\doc
   CreateDirectory $INSTDIR\save
   SetOutPath $INSTDIR\shaders
@@ -99,7 +99,7 @@ SectionGroupEnd
 Section "Uninstall"
   ; contents
   RMDir /r "$INSTDIR\conf"
-  RMDir /r "$INSTDIR\rom"
+  RMDir /r "$INSTDIR\roms"
   RMDir /r "$INSTDIR\doc"
   RMDir /r "$INSTDIR\save"
   RMDir /r "$INSTDIR\shaders"
