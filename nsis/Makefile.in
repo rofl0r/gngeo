@@ -5,6 +5,7 @@ CC = @CC@
 CURL = @CURL@
 UNZIP = @UNZIP@
 MAKENSIS = @MAKENSIS@
+SHA256SUM = @SHA256SUM@
 
 
 ZLIB_DLL=$(shell $(CC) -print-file-name=zlib1.dll)
@@ -15,7 +16,7 @@ NSISUNZ_URL=https://nsis.sourceforge.io/mediawiki/images/1/1c/Nsisunz.zip
 
 INSTALLER_NAME=setup-ngdk-gngeo.exe
 
-all: $(INSTALLER_NAME)
+all: $(INSTALLER_NAME) $(INSTALLER_NAME).sha256
 
 Nsisunz.zip:
 	$(CURL) -sL $(NSISUNZ_URL) -o $@
@@ -29,8 +30,11 @@ zlib1.dll:
 $(INSTALLER_NAME): gngeo.nsi zlib1.dll nsisunz.dll
 	$(MAKENSIS) -DSDL2_URL="$(SDL2_URL)" -DGLEW_URL="$(GLEW_URL)" -DINSTALLER_NAME="$(INSTALLER_NAME)" $<
 
+$(INSTALLER_NAME).sha256: $(INSTALLER_NAME)
+	$(SHA256SUM) $< > $@
+
 clean:
-	rm -f zlib1.dll $(INSTALLER_NAME) Nsisunz.zip nsisunz.dll *~
+	rm -f zlib1.dll $(INSTALLER_NAME) $(INSTALLER_NAME).sha256 Nsisunz.zip nsisunz.dll *~
 
 distclean: clean
 	rm -f Makefile

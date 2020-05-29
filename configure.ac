@@ -121,6 +121,7 @@ if test "x$enable_mingw" = xtrue ; then
    AC_PATH_PROG([CURL], [curl])
    AC_PATH_PROG([UNZIP], [unzip])
    AC_PATH_PROG([MAKENSIS], [makensis])
+   AC_PATH_PROG([SHA256SUM], [sha256sum])
 fi
 if test "x$enable_embedded" = xtrue ; then
    AC_DEFINE([EMBEDDED_FS],[1],[Define for embedded directory structure])

@@ -65,7 +65,7 @@ jobs:
         - ./configure --host=x86_64-w64-mingw32 --enable-mingw --prefix=$PREFIX --program-prefix=ngdevkit- CFLAGS='-DGNGEORC=\"ngdevkit-gngeorc\"' PKG_CONFIG_PATH=/usr/x86_64-w64-mingw32/lib/pkgconfig --with-glew=$(find ${WINDEPS} -name 'glew*' -type d)
         - make pkgdatadir=$PKGDATADIR
         - make install pkgdatadir=$PKGDATADIR
-        - make -C nsis all SDL2_URL="$NSIS_SDL2" GLEW_URL="$NSIS_GLEW" INSTALLER_NAME=setup-ngdevkit-gngeo-nightly.exe && cp nsis/setup-ngdevkit-gngeo-nightly.exe $PREFIX
+        - make -C nsis all SDL2_URL="$NSIS_SDL2" GLEW_URL="$NSIS_GLEW" INSTALLER_NAME=setup-ngdevkit-gngeo-nightly.exe && cp nsis/setup-ngdevkit-gngeo-nightly.exe nsis/setup-ngdevkit-gngeo-nightly.exe.sha256 $PREFIX
     - stage: Deploy
       name: Launchpad - daily deb package
       if: type = push AND branch = ngdevkit
@@ -96,7 +96,9 @@ jobs:
         provider: releases
         api_key:
           secure: S+rsYs6puM0a+YnYtpwkdrAId3Bp/TpUjVIGTkmAdoXx/RHTpozYbiXICpR0yCUtw3c1GPNPD5R5hIMobmXswM6Ymgo0rj9GfBJFARuc2Nf1st0Qt2gfDoIGHXhknCSwknzvcUmsqmCjn3HzYpSr4N3hdkK7mQbQlg8ctgjAv3iULBAA5MqENSRFo+R6pIq9U43XVkeB3iFDTswLsqCH9/luWX8FyvJPw7VHt1nZDGrFYPytSJYT2uUqg5gHZ0XOYdoDS1tbAqqMjExTHB18DqYeDt4tOABY4ek47qNbfwXdGGkCeJSujfeAz8k/iq8Tr3xiccK9rdiga9bW2gahTtrEKETOPg0oUavwKGkNo5TrN1wdhQC/1XRb+1ZDWkh0wtoBr7kvadBnDXEhcUXx82bivJRqslQJF7KQq6iU3zqLBdtUzRLAle4uj0KiT/+YcRqicX4/oxLQcRuFog+RvGi5Tax7fH2TfoOkbZVuqOBeoWizOiOW5AnNmla2hpllPq10WSKqIZg7RnEbGcq7TU66l+P2MAby1HVgDz3l3+yuL4mbNc7M6H1kjgRADg4iHaOR59bSGVUkspicamgcoabDjVC7TNZt1JoPB9pn5UpI83fZ1a0y06AfB32uGk0PuBPXuIxJhpw5nyNHLqtT9vyWDGAfSFW2vbMgkjOdEvs=
-        file: $PREFIX/setup-ngdevkit-gngeo-nightly.exe
+        file:
+          - $PREFIX/setup-ngdevkit-gngeo-nightly.exe
+          - $PREFIX/setup-ngdevkit-gngeo-nightly.exe.sha256
         prerelease: true
         overwrite: true
         on:
