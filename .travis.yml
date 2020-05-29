@@ -66,6 +66,27 @@ jobs:
         - make pkgdatadir=$PKGDATADIR
         - make install pkgdatadir=$PKGDATADIR
         - make -C nsis all SDL2_URL="$NSIS_SDL2" GLEW_URL="$NSIS_GLEW" INSTALLER_NAME=setup-ngdevkit-gngeo-nightly.exe && cp nsis/setup-ngdevkit-gngeo-nightly.exe nsis/setup-ngdevkit-gngeo-nightly.exe.sha256 $PREFIX
+    - name: "macOS"
+      os: osx
+      osx_image: xcode11.4
+      addons:
+        homebrew:
+          taps: dciabrin/ngdevkit
+          packages:
+            - emudbg
+            - autoconf-archive
+            - sdl2
+            - glew
+      env:
+      - PREFIX="/tmp/build/macos"
+      - PKGDATADIR="$PREFIX/share/ngdevkit-gngeo"
+      script:
+        - cd $TRAVIS_BUILD_DIR
+        - autoreconf -iv
+        - ./configure $BUILD_PARAMS --prefix=$PREFIX --program-prefix=ngdevkit- CFLAGS='-DGNGEORC=\"ngdevkit-gngeorc\"' $EXTRA_PARAMS
+        - make pkgdatadir=$PKGDATADIR
+        - make install pkgdatadir=$PKGDATADIR
+
     - stage: Deploy
       name: Launchpad - daily deb package
       if: type = push AND branch = ngdevkit
