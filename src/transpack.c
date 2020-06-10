@@ -29,6 +29,9 @@
 #include "transpack.h"
 
 
+TRANS_PACK *tile_trans;
+
+
 static void trans_pack_add(Uint32 begin,Uint32 end,Uint32 type)
 {
     TRANS_PACK *t;

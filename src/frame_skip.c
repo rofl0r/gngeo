@@ -43,6 +43,7 @@ static uclock_t F;
 
 static char init_frame_skip = 1;
 char skip_next_frame = 0;
+char fps_str[32];
 #if defined(HAVE_GETTIMEOFDAY) && !defined(WII)
 static int CPU_FPS = 60;
 static struct timeval init_tv = { 0, 0 };

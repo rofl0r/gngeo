@@ -17,6 +17,8 @@ jobs:
     - stage: Tests
       name: Linux
       os: linux
+      dist: focal
+      compiler: gcc-10
       addons:
         apt:
           sources: &sources
@@ -26,6 +28,7 @@ jobs:
             - autoconf-archive
             - libsdl2-dev
             - libglew-dev
+            - gcc-10
       env:
       - PREFIX="/tmp/build/linux"
       - PKGDATADIR="$PREFIX/share/ngdevkit-gngeo"
