@@ -62,6 +62,14 @@
 #include "generator68k/cpu68k.h"
 #endif
 
+struct _conf_t conf;
+
+Uint8 key[SDL_NUM_SCANCODES];
+Uint8 *joy_button[2];
+Sint32 *joy_axe[2];
+Uint32 joy_numaxes[2];
+
+
 int frame;
 int nb_interlace = 256;
 int current_line;

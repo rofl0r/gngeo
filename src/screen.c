@@ -19,6 +19,26 @@
 #include "font.h"
 #include "gngeo_icon.h"
 
+
+SDL_Surface *screen;
+SDL_Surface *buffer, *sprbuf, *fps_buf, *scan, *fontbuf;
+
+SDL_Texture *texture;
+SDL_Window *window;
+SDL_Renderer *renderer;
+
+SDL_Rect visible_area;
+
+int yscreenpadding;
+
+Uint8 interpolation;
+Uint8 nblitter;
+Uint8 neffect;
+Uint8 scale;
+Uint8 fullscreen;
+
+
+
 int effect_none_init(void);
 
 int effect_smooth_init(void);

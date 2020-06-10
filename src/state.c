@@ -46,6 +46,9 @@ static int endian_flag=0x0;
 #define ROOTPATH ""
 #endif
 
+SDL_Surface *state_img;
+Uint8 state_version;
+
 //static ST_REG *reglist;
 //static ST_MODULE st_mod[ST_MODULE_END];
 //static SDL_Rect buf_rect    =	{24, 16, 304, 224};

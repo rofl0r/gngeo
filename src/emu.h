@@ -45,7 +45,7 @@ typedef enum COUNTRY {
     CTY_MAX
 } COUNTRY;
 
-struct {
+struct _conf_t {
     char *game;
     Uint16 x_start;
     Uint16 y_start;
@@ -89,7 +89,8 @@ struct {
 
     int p1_hotkey[4];
     int p2_hotkey[4];
-} conf;
+};
+extern struct _conf_t conf;
 
 enum {
     HOTKEY_MASK_A = 0x1,
@@ -123,10 +124,10 @@ enum {
 
 //config conf;
 
-Uint8 key[SDL_NUM_SCANCODES];
-Uint8 *joy_button[2];
-Sint32 *joy_axe[2];
-Uint32 joy_numaxes[2];
+extern Uint8 key[SDL_NUM_SCANCODES];
+extern Uint8 *joy_button[2];
+extern Sint32 *joy_axe[2];
+extern Uint32 joy_numaxes[2];
 
 void debug_loop(void);
 #ifdef HAVE_EMUDBG_H
