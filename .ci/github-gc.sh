@@ -9,7 +9,7 @@ set +x
 
 
 help() {
-    echo "Usage: $0 --repo={user}/{repo} --token={github-api-token} --tag-regex={str} --commit={sha1}" >&2
+    echo "Usage: $0 --user={user} --repo={repo} --token={github-api-token} --tag-regex={str} --commit={sha1}" >&2
     exit ${1:-0}
 }
 
@@ -26,9 +26,10 @@ check() {
 
 # ----------------- config parsing -----------------
 #
-REPO=${TRAVIS_REPO_SLUG:-}
-COMMIT=${TRAVIS_COMMIT:-}
-GITHUB_TOKEN=
+USER=
+REPO=
+COMMIT=
+GITHUB_TOKEN=${GH_TOKEN:-}
 TAG_REGEX=
 DRYRUN=
 
@@ -52,6 +53,9 @@ while true; do
     esac
 done
 
+if [ -z "$USER" ]; then
+    error "no user specified"
+fi
 if [ -z "$REPO" ]; then
     error "no repository specified"
 fi
@@ -63,10 +67,6 @@ if [ -z "$TAG_REGEX" ]; then
 fi
 if [ -z "$COMMIT" ]; then
     error "no commit specified, cannot check whether latest GitHub release points to the right code"
-fi
-if [ -z "$USER" ]; then
-    # if unset, extract user from repo slug
-    USER=$(echo $REPO | cut -d'/' -f1)
 fi
 CREDS=$USER:$GITHUB_TOKEN
 
