@@ -1,0 +1,163 @@
+name: Build and Test
+on:
+  push:
+    branches:
+      - 'master'
+jobs:
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    env:
+      BUILD_PARAMS: ""
+      PREFIX: "/tmp/build/linux"
+      PKGDATADIR: "$PREFIX/share/ngdevkit-gngeo"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo add-apt-repository -y ppa:dciabrin/ngdevkit
+          sudo apt-get update -y
+          sudo apt-get install -y emudbg-dev autoconf-archive libsdl2-dev libglew-dev
+      - name: Build
+        run: ./.github/scripts/build.sh
+
+  win:
+    name: Windows cross-compiled
+    runs-on: ubuntu-latest
+    env:
+      BUILD_PARAMS: "--host=x86_64-w64-mingw32 --enable-mingw"
+      PREFIX: "/tmp/build/mingw"
+      PKGDATADIR: "$PREFIX/share"
+      WINDEPS: "/tmp/deps"
+      SDL: "https://www.libsdl.org/release/SDL2-devel-2.0.8-mingw.tar.gz"
+      GLEW: "https://downloads.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip"
+      NSIS_SDL2: "http://libsdl.org/release/SDL2-2.0.10-win32-x64.zip"
+      NSIS_GLEW: "http://downloads.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Dependencies
+        run: |
+          sudo add-apt-repository -y ppa:dciabrin/ngdevkit
+          sudo apt-get update -y
+          sudo apt-get install -y emudbg-dev autoconf-archive libsdl2-dev libglew-dev
+          sudo apt-get install mingw-w64 libz-mingw-w64-dev emudbg-mingw-w64-dev nsis
+
+      - name: Build
+        run: |
+          ./.github/scripts/build-mingw.sh
+          cp /tmp/build/mingw/setup-ngdevkit-gngeo-nightly.exe* .
+
+      - name: Upload NSIS installer
+        uses: actions/upload-artifact@v2
+        with:
+          name: nsis-artifact
+          path: |
+            setup-ngdevkit-gngeo-nightly.exe
+            setup-ngdevkit-gngeo-nightly.exe.sha256
+
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    env:
+      BUILD_PARAMS: ""
+      PREFIX: "/tmp/build/macos"
+      PKGDATADIR: "$PREFIX/share/ngdevkit-gngeo"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          brew tap dciabrin/ngdevkit
+          brew install emudbg automake autoconf-archive sdl2 glew
+
+      - name: Build
+        run: ./.github/scripts/build.sh
+
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [linux, win, macos]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: "Launchpad: trigger nightly deb rebuild"
+        run: .ci/trigger-launchpad-build.sh --slug="~dciabrin/ngdevkit/+git/emudbg" --name="Travis%20Deploy"
+        env:
+          LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
+          LAUNCHPAD_TOKEN_SECRET: ${{ secrets.LAUNCHPAD_TOKEN_SECRET }}
+
+      - name: "Brew: push new nightly revision and bottle"
+        run: |
+          git config --global user.name 'CI build bot'
+          git config --global user.email '<>'
+          git config --global url."https://api@github.com/".insteadOf "https://github.com/"
+          git clone https://github.com/dciabrin/homebrew-ngdevkit .ci/homebrew-ngdevkit
+          .ci/homebrew-ngdevkit/.ci/bump-project-nightly-build.sh emudbg
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: "Cleanup old nightly tags"
+        run: .ci/gc-nightly-tags.sh --user=dciabrin --repo=emudbg --tag-regex='^refs/tags/nightly-[0-9]*'
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  nsis:
+    name: Publish
+    runs-on: ubuntu-latest
+    needs: [linux, win, macos]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download a single artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: nsis-artifact
+
+      - name: Retrieve information from current commit
+        id: nsis_data
+        run: |
+          echo "::set-output name=tag::$(TZ=UTC git show --quiet --date='format-local:%Y%m%d%H%M' --format='nightly-%ad')"
+          echo "::set-output name=date::$(TZ=UTC git show --quiet --date='format-local:%Y-%m-%d %H:%M' --format='%ad')"
+          echo "::set-output name=body::$(git show --quiet --format='%s')"
+
+      - name: Create nightly NSIS installer release
+        id: nsis_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.nsis_data.outputs.tag }}
+          release_name: Nightly build - ${{ steps.nsis_data.outputs.date }}
+          body: Nightly build ${{ steps.nsis_data.outputs.body }}
+          draft: false
+          prerelease: true
+
+      - name: Upload nightly NSIS installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.nsis_release.outputs.upload_url }}
+          asset_path: setup-ngdevkit-gngeo-nightly.exe
+          asset_name: setup-ngdevkit-gngeo-nightly.exe
+          asset_content_type: application/vnd.microsoft.portable-executable
+
+      - name: Upload nightly NSIS installer SHA256
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.nsis_release.outputs.upload_url }}
+          asset_path: setup-ngdevkit-gngeo-nightly.exe.sha256
+          asset_name: setup-ngdevkit-gngeo-nightly.exe.sha256
+          asset_content_type: text/plain
