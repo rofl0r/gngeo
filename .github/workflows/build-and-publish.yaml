@@ -90,7 +90,7 @@ jobs:
           fetch-depth: 0
 
       - name: "Launchpad: trigger nightly deb rebuild"
-        run: .ci/trigger-launchpad-build.sh --slug="~dciabrin/ngdevkit/+git/emudbg" --name="Travis%20Deploy"
+        run: .ci/trigger-launchpad-build.sh --slug="~dciabrin/ngdevkit/+git/gngeo" --name="Travis%20Deploy"
         env:
           LAUNCHPAD_TOKEN: ${{ secrets.LAUNCHPAD_TOKEN }}
           LAUNCHPAD_TOKEN_SECRET: ${{ secrets.LAUNCHPAD_TOKEN_SECRET }}
@@ -101,12 +101,12 @@ jobs:
           git config --global user.email '<>'
           git config --global url."https://api@github.com/".insteadOf "https://github.com/"
           git clone https://github.com/dciabrin/homebrew-ngdevkit .ci/homebrew-ngdevkit
-          .ci/homebrew-ngdevkit/.ci/bump-project-nightly-build.sh emudbg
+          .ci/homebrew-ngdevkit/.ci/bump-project-nightly-build.sh gngeo
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: "Cleanup old nightly tags"
-        run: .ci/gc-nightly-tags.sh --user=dciabrin --repo=emudbg --tag-regex='^refs/tags/nightly-[0-9]*'
+        run: .ci/gc-nightly-tags.sh --user=dciabrin --repo=gngeo --tag-regex='^refs/tags/nightly-[0-9]*'
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
