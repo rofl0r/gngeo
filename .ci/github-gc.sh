@@ -66,7 +66,8 @@ if [ -z "$TAG_REGEX" ]; then
     error "no tag regex specified, cannot filter which tags to remove"
 fi
 if [ -z "$COMMIT" ]; then
-    error "no commit specified, cannot check whether latest GitHub release points to the right code"
+    COMMIT=$(git log --pretty=format:"%H" -1 HEAD)
+    echo "No commit specified, defaulting to current branch's HEAD ($COMMIT)"
 fi
 CREDS=$USER:$GITHUB_TOKEN
 
@@ -74,7 +75,7 @@ CREDS=$USER:$GITHUB_TOKEN
 # ----------------- garbage-collect releases and tags -----------------
 #
 echo "Downloading releases list from $REPO..."
-ret=$(curl -s -w "%{http_code}" -X GET -u $CREDS https://api.github.com/repos/$REPO/releases -o releases)
+ret=$(curl -s -w "%{http_code}" -X GET -u $CREDS https://api.github.com/repos/$USER/$REPO/releases -o releases)
 check "downloading releases list" $ret
 
 # most recent release matching tag_name regex
@@ -100,14 +101,14 @@ for i in $releases_rm; do
     tag_name_rm=$(jq -r '.[] | select (.id == '"$i"') | .tag_name' releases)
     echo "  removing release $i pointing to tag $tag_name_rm"
     if [ -z "$DRYRUN" ]; then
-        ret=$(curl -s -w "%{http_code}" -X DELETE -u $CREDS https://api.github.com/repos/$REPO/releases/$i)
+        ret=$(curl -s -w "%{http_code}" -X DELETE -u $CREDS https://api.github.com/repos/$USER/$REPO/releases/$i)
         check "removing release $i" $ret
         sleep 0.5
     fi
 done
 
 echo "Downloading tags list from $REPO..."
-ret=$(curl -s -w "%{http_code}" -X GET -u $CREDS https://api.github.com/repos/$REPO/git/refs/tags -o references)
+ret=$(curl -s -w "%{http_code}" -X GET -u $CREDS https://api.github.com/repos/$USER/$REPO/git/refs/tags -o references)
 check "downloading tags list" $ret
 
 # all tags to remove
@@ -121,7 +122,7 @@ for i in $tags_rm; do
     commit_rm=$(jq -r '.[] | select (.ref == "'"$i"'") | .object.sha' references)
     echo ". Removing tag reference $i pointing to commit $commit_rm"
     if [ -z "$DRYRUN" ]; then
-        ret=$(curl -s -w "%{http_code}" -X DELETE -u $CREDS https://api.github.com/repos/$REPO/git/$i)
+        ret=$(curl -s -w "%{http_code}" -X DELETE -u $CREDS https://api.github.com/repos/$USER/$REPO/git/$i)
         check "  removing tag reference $i" $ret
         sleep 0.5
     fi
