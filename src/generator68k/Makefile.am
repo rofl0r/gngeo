@@ -72,7 +72,7 @@ MOSTLYCLEANFILES = ${BUILT_SOURCES}
 #def68k : def68k.c
 #	gcc def68k.c tab68k.c -o def68k -I .. -I ../.. -I . `sdl-config --cflags`
 def68k.o gen68k.o tab68k2.o : %.o : %.c
-	$(gcc_build_verbose)$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl2-config --cflags`
+	$(gcc_build_verbose)$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl2-config --cflags` -Umain -Dmain=main
 
 def68k$(EXEEXT) : def68k.o tab68k2.o
 	$(gcc_build_verbose)$(CC_FOR_BUILD) def68k.o tab68k2.o -o $@ 

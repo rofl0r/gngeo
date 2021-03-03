@@ -9,6 +9,10 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#if defined(MINGW)
+#undef printf
+#undef fprintf
+#endif
 #include "SDL.h"
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -19,6 +23,11 @@
 #include <string.h>
 
 #include "gnutil.h"
+
+#if defined(MINGW)
+#define printf gn_log_printf
+#define fprintf gn_log_fprintf
+#endif
 
 char gnerror[1024];
 
