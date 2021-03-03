@@ -15,6 +15,10 @@ char *file_basename(char *filename);
 int check_dir(char *dir_name);
 void gn_set_error_msg(char *fmt,...);
 void gn_strncat_dir(char *basedir,char *dir,size_t n);
+#if defined(MINGW)
+int gn_log_printf(const char*fmt, ...);
+int gn_log_fprintf(FILE*f, const char*fmt, ...);
+#endif
 
 #if defined (__AMIGA__)
 #ifdef DATA_DIRECTORY

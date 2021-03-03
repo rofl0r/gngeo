@@ -9,12 +9,43 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE(silent-rules)
 AM_SILENT_RULES
 
+# Build flags
+AC_DEFUN([GN_ARG_ENABLE],[
+        AC_ARG_ENABLE($1,[  $2],
+                [case "${enableval}" in
+         yes) enable_$1=true ;;
+         no)  enable_$1=false ;;
+         *) AC_MSG_ERROR([bad value ${enableval} for --enable-$1]) ;;
+         esac];$3,
+         [enable_$1=false];$4)
+]
+)
+
+GN_ARG_ENABLE(gp2x,    [--enable-gp2x           Enable GP2X build])
+GN_ARG_ENABLE(wiz,     [--enable-wiz            Enable WIZ build])
+GN_ARG_ENABLE(wii,     [--enable-wii            Enable WII build])
+GN_ARG_ENABLE(rpi,     [--enable-rpi            Enable Raspberry Pi build])
+GN_ARG_ENABLE(pandora, [--enable-pandora        Enable PANDORA build])
+GN_ARG_ENABLE(win32,   [--enable-win32          Enable WIN32 build])
+GN_ARG_ENABLE(mingw,   [--enable-mingw          Enable MinGW build])
+GN_ARG_ENABLE(msys2,   [--enable-msys2          Enable MinGW build on MSYS2])
+GN_ARG_ENABLE(dingux,  [--enable-dingux         Enable DINGUX build])
+GN_ARG_ENABLE(embedded,[--enable-embedded       Enable Embedded directory structure])
+
+
 # it's not optimal, but at least, it work
 if test -z "$CC_FOR_BUILD"; then
   CC_FOR_BUILD=gcc
 fi
 AC_SUBST(CC_FOR_BUILD)
 
+# MSYS2: set a default mingw-compatible compiler
+if test "x$enable_msys2" = xtrue ; then
+   enable_mingw=true
+   if test "x$CC" = x ; then
+      CC=/mingw64/bin/x86_64-w64-mingw32-gcc.exe
+   fi
+fi
 
 # Checks for programs.
 AC_PROG_CC
@@ -30,26 +61,6 @@ AC_CACHE_CHECK([whether the C compiler is clang],[ng_cv_cc_clang],
 	         ng_cv_cc_clang=no;
 	       fi])
 
-AC_DEFUN([GN_ARG_ENABLE],[
-	AC_ARG_ENABLE($1,[  $2],
-		[case "${enableval}" in
-       	 yes) enable_$1=true ;;
-       	 no)  enable_$1=false ;;
-       	 *) AC_MSG_ERROR([bad value ${enableval} for --enable-$1]) ;;
-     	 esac];$3,
-     	 [enable_$1=false];$4)
-]
-)
-
-GN_ARG_ENABLE(gp2x,    [--enable-gp2x           Enable GP2X build])
-GN_ARG_ENABLE(wiz,     [--enable-wiz            Enable WIZ build])
-GN_ARG_ENABLE(wii,     [--enable-wii            Enable WII build])
-GN_ARG_ENABLE(rpi,     [--enable-rpi            Enable Raspberry Pi build])
-GN_ARG_ENABLE(pandora, [--enable-pandora        Enable PANDORA build])
-GN_ARG_ENABLE(win32,   [--enable-win32          Enable WIN32 build])
-GN_ARG_ENABLE(mingw,   [--enable-mingw          Enable MinGW build])
-GN_ARG_ENABLE(dingux,  [--enable-dingux         Enable DINGUX build])
-GN_ARG_ENABLE(embedded,[--enable-embedded       Enable Embedded directory structure])
 
 # Specific path for GLEW, needed for GLSL support on OpenGL
 AC_ARG_WITH([glew],
@@ -99,12 +110,33 @@ if test "x$enable_win32" = xtrue ; then
    AC_DEFINE([WIN32],[1],[Define if you build for win32])
    NASMENV="--prefix_"
 fi
+if test "x$enable_msys2" = xtrue ; then
+   enable_mingw=true
+fi
 if test "x$enable_mingw" = xtrue ; then
    enable_embedded=true
-   host=`uname -m`-w64-mingw32
    datarootdir="${prefix}"
    bindir="${prefix}"
    mandir="${prefix}"/doc
+   AC_DEFINE([MINGW],[1],[Define if you build for MinGW])
+   AC_PATH_PROG([CURL], [curl])
+   AC_PATH_PROG([UNZIP], [unzip])
+   AC_PATH_PROG([MAKENSIS], [makensis])
+   AC_PATH_PROG([SHA256SUM], [sha256sum])
+fi
+if test "x$enable_msys2" = xtrue ; then
+   case $target_cpu in
+      x86_64) PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/mingw64/lib/pkgconfig" ;;
+      *)      PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/mingw32/lib/pkgconfig" ;;
+   esac
+   export PKG_CONFIG_PATH
+   if test "x$with_glew" != "xno" ; then
+      GL_CFLAGS="-I${with_glew}/include $GL_CFLAGS"
+      LDFLAGS="-L${with_glew}/bin $LDFLAGS"
+      GL_LIBS="-lglew32 -lopengl32 $GL_LIBS"
+   fi
+elif test "x$enable_mingw" = xtrue; then
+   host=`uname -m`-w64-mingw32
    CFLAGS="$CFLAGS -I/usr/${host}/include -I/usr/local/${host}/include"
    CPPFLAGS="$CPPFLAGS -I/usr/${host}/include -I/usr/local/${host}/include"
    LDFLAGS="$LDFLAGS -L/usr/${host}/lib -L/usr/local/${host}/lib"
@@ -117,11 +149,6 @@ if test "x$enable_mingw" = xtrue ; then
       esac
       GL_LIBS="-lglew32 -lopengl32 $GL_LIBS"
    fi
-   AC_DEFINE([MINGW],[1],[Define if you build for MinGW])
-   AC_PATH_PROG([CURL], [curl])
-   AC_PATH_PROG([UNZIP], [unzip])
-   AC_PATH_PROG([MAKENSIS], [makensis])
-   AC_PATH_PROG([SHA256SUM], [sha256sum])
 fi
 if test "x$enable_embedded" = xtrue ; then
    AC_DEFINE([EMBEDDED_FS],[1],[Define for embedded directory structure])
