@@ -163,7 +163,7 @@ static int search_central_dir(PKZIP *zf) {
 	}
 	//printf("End of central dir here %08x\n", zf->cde_offset);
 	//freadvle(zf->file,"4 22 22 44",0,&nbdsk,0,0,&zf->nb_item,&zf->cd_size,&zf->cd_offset);
-	freadvle(zf->file, "22 22 44", &nbdsk, 0, 0, &zf->nb_item, &zf->cd_size,
+	freadvle(zf->file, "22 22 44", &nbdsk, NULL, NULL, &zf->nb_item, &zf->cd_size,
 			&zf->cd_offset);
 	if (nbdsk != 0) {
 		printf("Multi disk not supported (%d)\n", nbdsk);
