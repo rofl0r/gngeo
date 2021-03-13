@@ -53,7 +53,7 @@ if PROCESSOR_ARM
 endif
 
 if USE_MINGW
-  AM_CFLAGS = -Dprintf=gn_log_printf -Dfprintf=gn_log_fprintf
+  AM_CFLAGS = -I$(top_builddir)/mingw
 install-exec-local:
 	for dir in "$(DESTDIR)$(datadir)/conf" \
 		   "$(DESTDIR)$(datadir)/roms" \

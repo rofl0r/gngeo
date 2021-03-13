@@ -123,6 +123,15 @@ if test "x$enable_mingw" = xtrue ; then
    AC_PATH_PROG([UNZIP], [unzip])
    AC_PATH_PROG([MAKENSIS], [makensis])
    AC_PATH_PROG([SHA256SUM], [sha256sum])
+
+   AC_MSG_CHECKING([the location of stdio.h to override])
+   MINGW_STDIO_REALPATH=`echo "#include <stdio.h>" | $CC -xc -E - | sed -n 's/^#.*"\([^"]*stdio.h\)".*/\1/p' | sort -u`
+   if test -f "$MINGW_STDIO_REALPATH"; then
+      AC_MSG_RESULT($MINGW_STDIO_REALPATH)
+   else
+      AC_MSG_ERROR([stdio.h not found])
+   fi
+   AC_SUBST(MINGW_STDIO_REALPATH)
 fi
 if test "x$enable_msys2" = xtrue ; then
    case $target_cpu in
@@ -436,6 +445,7 @@ AC_CONFIG_FILES([Makefile
                  gngeo.dat/Makefile
                  pnd/Makefile
                  nsis/Makefile
+                 mingw/stdio.h
                  src/Makefile
                  src/raze/Makefile
                  src/star/Makefile
@@ -446,4 +456,5 @@ AC_CONFIG_FILES([Makefile
                  src/effect/Makefile
                  src/blitter/Makefile
                  src/ym2610/Makefile])
+
 AC_OUTPUT

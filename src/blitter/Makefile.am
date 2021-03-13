@@ -12,5 +12,5 @@ dist_shader_DATA = noop.glsl noop.glslp
 endif
 
 if USE_MINGW
-  AM_CFLAGS = -Dprintf=gn_log_printf -Dfprintf=gn_log_fprintf
+  AM_CFLAGS = -I$(top_builddir)/mingw
 endif
