@@ -1,0 +1,25 @@
+/* Divert standard printf and fprintf function to a file
+ * This is useful for MINGW because GnGeo is built as a Windows
+ * application and as such has no console output.
+ */
+#ifndef __GNGEO_OVERRIDE_STDIO_H__
+#define __GNGEO_OVERRIDE_STDIO_H__
+
+/* MINGW/MSYS2 defines (f)printf as an inline macro, so
+ * rename these unwanted symbol so they don't collide
+ * with the GnGeo (f)printf replacement
+ */
+#define printf gngeo_override_printf
+#define fprintf gngeo_override_fprintf
+#include "@MINGW_STDIO_REALPATH@"
+
+/* Any code including that file will now log to
+ * GnGeo's log file when using (f)printf
+ */
+#undef printf
+#undef fprintf
+#define printf gn_log_printf
+#define fprintf gn_log_fprintf
+int gn_log_printf(const char*fmt, ...);
+int gn_log_fprintf(FILE*f, const char*fmt, ...);
+#endif
