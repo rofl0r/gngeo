@@ -374,7 +374,7 @@ PKZIP *gn_open_zip(char *file) {
 	struct stat sb;
 //printf("CWR %s\n",get_current_dir_name());
 
-#ifndef MINGW
+#if !defined(MINGW) && !defined(__MINGW32__) && !defined(__MINGW64__)
 	if (lstat(file,&sb)==-1) {
 		printf("Couldn't open %s\n", file);
 		free(zf);

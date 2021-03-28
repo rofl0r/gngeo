@@ -38,7 +38,7 @@ int res_verify_datafile(char *file) {
 
 	if (!file) file=CF_STR(cf_get_item_by_name("datafile"));
 
-#ifdef MINGW
+#if defined(MINGW) || defined(__MINGW32__) || defined(__MINGW64__)
 	return GN_TRUE;
 #else
 	if (lstat(file,&sb)==-1) {
