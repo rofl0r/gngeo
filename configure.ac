@@ -282,7 +282,7 @@ pushdef([_AX_CHECK_GL_PROGRAM],
 # if defined(HAVE_WINDOWS_H) && defined(_WIN32)
 #   include <windows.h>
 # endif
-# if defined(MINGW)
+# if defined(MINGW) || defined(__MINGW32__) || defined(__MINGW64__)
 #     include <GL/glew.h>
 # else
 #   ifdef HAVE_GL_GL_H

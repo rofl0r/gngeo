@@ -9,7 +9,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#if defined(MINGW)
+#if defined(MINGW) && defined(__MINGW32__) && defined(__MINGW64__)
 #undef printf
 #undef fprintf
 #endif
@@ -24,7 +24,7 @@
 
 #include "gnutil.h"
 
-#if defined(MINGW)
+#if defined(MINGW) && defined(__MINGW32__) && defined(__MINGW64__)
 #define printf gn_log_printf
 #define fprintf gn_log_fprintf
 #endif
@@ -109,7 +109,7 @@ void gn_set_error_msg(char *fmt,...) {
 	vsnprintf(gnerror,GNERROR_SIZE,fmt,pvar);
 }
 
-#if defined(MINGW)
+#if defined(MINGW) && defined(__MINGW32__) && defined(__MINGW64__)
 #define GN_DIR_SEP '\\'
 #else
 #define GN_DIR_SEP '/'
@@ -147,7 +147,7 @@ void gn_strncat_dir(char *basedir,char *dir,size_t n) {
 	}
 }
 
-#if defined(MINGW)
+#if defined(MINGW) && defined(__MINGW32__) && defined(__MINGW64__)
 static FILE* logfile;
 void gn_log_init(void){
 	if (!logfile) {

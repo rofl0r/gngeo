@@ -606,7 +606,7 @@ int pbar_anim_thread(void *data) {
 		SDL_BlitSurface(pbar_logo, &src_r, menu_buf, &dst_r);
 
 		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
-#if !defined(__APPLE__) && !defined(MINGW)
+#if !defined(__APPLE__) && !defined(MINGW) && !defined(__MINGW32__) && !defined(__MINGW64__)
 		// Various OpenGL implementations limit the use of
 		// OpenGL API to the thread that created the OpenGL
 		// context. Update the screen only if we can.
@@ -617,7 +617,7 @@ int pbar_anim_thread(void *data) {
 	}
 	SDL_BlitSurface(gngeo_logo, NULL, pbar_logo, NULL);
 	SDL_BlitSurface(pbar_logo, &src_r, menu_buf, &dst_r);
-#if !defined(__APPLE__) && !defined(MINGW)
+#if !defined(__APPLE__) && !defined(MINGW) && !defined(__MINGW32__) && !defined(__MINGW64__)
 	screen_update();
 #endif
 	frame_skip(0);
@@ -1179,7 +1179,7 @@ int rom_browser_scanning_anim(void *data) {
 			draw_string(menu_buf, sfont, MENU_TITLE_X, MENU_TITLE_Y,
 					"Scanning");
 		SDL_BlitSurface(menu_buf, NULL, buffer, NULL);
-#if !defined(__APPLE__) && !defined(MINGW)
+#if !defined(__APPLE__) && !defined(MINGW) && !defined(__MINGW32__) && !defined(__MINGW64__)
 		// Various OpenGL implementations limit the use of
 		// OpenGL API to the thread that created the OpenGL
 		// context. Update the screen only if we can.
@@ -1193,7 +1193,7 @@ int rom_browser_scanning_anim(void *data) {
 	return 0;
 }
 
-#if defined(MINGW)
+#if defined(MINGW) || defined(__MINGW32__) || defined(__MINGW64__)
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
 #endif
 

@@ -448,7 +448,7 @@ void init_sdl(void) {
     char *nomouse = getenv("SDL_NOMOUSE");
     SDL_Surface *icon;
 
-#ifndef MINGW
+#if !defined(MINGW) && !defined(__MINGW32__) && !defined(__MINGW64__)
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_NOPARACHUTE);
 #else
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE);
