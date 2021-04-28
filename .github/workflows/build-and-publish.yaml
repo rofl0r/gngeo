@@ -5,7 +5,7 @@ on:
       - 'ngdevkit'
 jobs:
   linux:
-    name: Linux build
+    name: "Linux build"
     runs-on: ubuntu-latest
     env:
       BUILD_PARAMS: ""
@@ -23,8 +23,8 @@ jobs:
       - name: Build
         run: ./.github/scripts/build.sh
 
-  win:
-    name: Windows cross-compiled build
+  wincross:
+    name: "Windows cross-compiled Linux/MinGW"
     runs-on: ubuntu-latest
     env:
       BUILD_PARAMS: "--host=x86_64-w64-mingw32 --enable-mingw"
@@ -59,8 +59,40 @@ jobs:
             setup-ngdevkit-gngeo-nightly.exe
             setup-ngdevkit-gngeo-nightly.exe.sha256
 
+  win:
+    name: "Windows native MSYS2 build"
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install:
+            git autoconf autoconf-archive automake make
+            mingw-w64-x86_64-gcc mingw-w64-x86_64-libtool
+            mingw-w64-x86_64-pkg-config mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-glew
+
+      - name: Install ngdevkit dependencies
+        run: |
+          echo -e "[ngdevkit]\nSigLevel = Optional TrustAll\nServer = https://dciabrin.net/msys2-ngdevkit/\$arch" >> /etc/pacman.conf
+          pacman -Sy
+          pacman -S --noconfirm mingw-w64-x86_64-emudbg
+
+      - name: Build
+        run: ./.github/scripts/build-msys2.sh
+
   macos:
-    name: macOS build
+    name: "macOS build"
     runs-on: macos-latest
     env:
       BUILD_PARAMS: ""
@@ -82,7 +114,7 @@ jobs:
   deploy_deb:
     name: "deb: trigger Launchpad rebuild"
     runs-on: ubuntu-latest
-    needs: [linux, win, macos]
+    needs: [linux, wincross, win, macos]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -96,7 +128,7 @@ jobs:
   deploy_brew:
     name: "brew: trigger bottle rebuild"
     runs-on: ubuntu-latest
-    needs: [linux, win, macos]
+    needs: [linux, wincross, win, macos]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -116,7 +148,7 @@ jobs:
   deploy_nsis:
     name: "win: publish NSIS installer"
     runs-on: ubuntu-latest
-    needs: [linux, win, macos]
+    needs: [linux, wincross, win, macos]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -165,10 +197,30 @@ jobs:
           asset_name: setup-ngdevkit-gngeo-nightly.exe.sha256
           asset_content_type: text/plain
 
+  deploy_msys2:
+    name: "msys2: trigger package rebuild"
+    needs: [linux, wincross, win, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: "MSYS2: push new nightly revision and rebuild package repository"
+        run: |
+          git config --global user.name 'CI build bot'
+          git config --global user.email '<>'
+          git config --global url."https://api@github.com/".insteadOf "https://github.com/"
+          git clone https://github.com/dciabrin/msys2-ngdevkit .ci/msys2-ngdevkit
+          .ci/msys2-ngdevkit/.ci/bump-project-nightly-build.sh ngdevkit-gngeo ngdevkit
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
   cleanup_tags:
     name: "Cleanup tags and artefacts"
     runs-on: ubuntu-latest
-    needs: [deploy_deb, deploy_brew, deploy_nsis]
+    needs: [deploy_deb, deploy_brew, deploy_nsis, deploy_msys2]
     steps:
       - name: Checkout
         uses: actions/checkout@v2

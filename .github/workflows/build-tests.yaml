@@ -5,7 +5,7 @@ on:
       - 'ngdevkit'
 jobs:
   linux:
-    name: Linux
+    name: "Linux build"
     runs-on: ubuntu-latest
     env:
       BUILD_PARAMS: ""
@@ -23,8 +23,8 @@ jobs:
       - name: Build
         run: ./.github/scripts/build.sh
 
-  win:
-    name: Windows cross-compiled
+  wincross:
+    name: "Windows cross-compiled Linux/MinGW"
     runs-on: ubuntu-latest
     env:
       BUILD_PARAMS: "--host=x86_64-w64-mingw32 --enable-mingw"
@@ -50,8 +50,40 @@ jobs:
         run: |
           ./.github/scripts/build-mingw.sh
 
+  win:
+    name: "Windows native MSYS2 build"
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install:
+            git autoconf autoconf-archive automake make
+            mingw-w64-x86_64-gcc mingw-w64-x86_64-libtool
+            mingw-w64-x86_64-pkg-config mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-glew
+
+      - name: Install ngdevkit dependencies
+        run: |
+          echo -e "[ngdevkit]\nSigLevel = Optional TrustAll\nServer = https://dciabrin.net/msys2-ngdevkit/\$arch" >> /etc/pacman.conf
+          pacman -Sy
+          pacman -S --noconfirm mingw-w64-x86_64-emudbg
+
+      - name: Build
+        run: ./.github/scripts/build-msys2.sh
+
   macos:
-    name: macOS
+    name: "macOS build"
     runs-on: macos-latest
     env:
       BUILD_PARAMS: ""
