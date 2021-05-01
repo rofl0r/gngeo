@@ -52,6 +52,10 @@ if PROCESSOR_ARM
   gngeo_SOURCES += video_arm.s memcpy.S
 endif
 
+if USE_MSYS2
+  AM_CFLAGS = -I$(top_builddir)/mingw
+endif
+
 if USE_MINGW
   AM_CFLAGS = -I$(top_builddir)/mingw
 install-exec-local:

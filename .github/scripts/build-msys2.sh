@@ -7,6 +7,8 @@ autoreconf -iv
     --host=x86_64-w64-mingw32 \
     --target=x86_64-w64-mingw32 \
     --program-prefix=ngdevkit- \
+    --enable-msys2 \
+    --with-glew \
     CFLAGS="-Wno-implicit-function-declaration -DGNGEORC=\\\"ngdevkit-gngeorc\\\"" \
     GL_LIBS="-L/mingw64/bin -lglew32 -lopengl32"
 make -j1 pkgdatadir=/mingw64/share/ngdevkit-gngeo

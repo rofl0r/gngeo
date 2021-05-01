@@ -147,7 +147,7 @@ void gn_strncat_dir(char *basedir,char *dir,size_t n) {
 	}
 }
 
-#if defined(MINGW) && defined(__MINGW32__) && defined(__MINGW64__)
+#if defined(MINGW) || defined(__MINGW32__) || defined(__MINGW64__)
 static FILE* logfile;
 void gn_log_init(void){
 	if (!logfile) {

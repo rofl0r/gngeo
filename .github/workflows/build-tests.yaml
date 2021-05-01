@@ -70,7 +70,7 @@ jobs:
           install:
             git autoconf autoconf-archive automake make
             mingw-w64-x86_64-gcc mingw-w64-x86_64-libtool
-            mingw-w64-x86_64-pkg-config mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-pkgconf mingw-w64-x86_64-SDL2
             mingw-w64-x86_64-glew
 
       - name: Install ngdevkit dependencies

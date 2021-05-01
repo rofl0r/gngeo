@@ -27,8 +27,8 @@ GN_ARG_ENABLE(wii,     [--enable-wii            Enable WII build])
 GN_ARG_ENABLE(rpi,     [--enable-rpi            Enable Raspberry Pi build])
 GN_ARG_ENABLE(pandora, [--enable-pandora        Enable PANDORA build])
 GN_ARG_ENABLE(win32,   [--enable-win32          Enable WIN32 build])
-GN_ARG_ENABLE(mingw,   [--enable-mingw          Enable MinGW build])
-GN_ARG_ENABLE(msys2,   [--enable-msys2          Enable MinGW build on MSYS2])
+GN_ARG_ENABLE(mingw,   [--enable-mingw          Enable embedded Windows build with MinGW])
+GN_ARG_ENABLE(msys2,   [--enable-msys2          Enable native Windows build with MSYS2])
 GN_ARG_ENABLE(dingux,  [--enable-dingux         Enable DINGUX build])
 GN_ARG_ENABLE(embedded,[--enable-embedded       Enable Embedded directory structure])
 
@@ -41,7 +41,6 @@ AC_SUBST(CC_FOR_BUILD)
 
 # MSYS2: set a default mingw-compatible compiler
 if test "x$enable_msys2" = xtrue ; then
-   enable_mingw=true
    if test "x$CC" = x ; then
       CC=/mingw64/bin/x86_64-w64-mingw32-gcc.exe
    fi
@@ -110,20 +109,7 @@ if test "x$enable_win32" = xtrue ; then
    AC_DEFINE([WIN32],[1],[Define if you build for win32])
    NASMENV="--prefix_"
 fi
-if test "x$enable_msys2" = xtrue ; then
-   enable_mingw=true
-fi
-if test "x$enable_mingw" = xtrue ; then
-   enable_embedded=true
-   datarootdir="${prefix}"
-   bindir="${prefix}"
-   mandir="${prefix}"/doc
-   AC_DEFINE([MINGW],[1],[Define if you build for MinGW])
-   AC_PATH_PROG([CURL], [curl])
-   AC_PATH_PROG([UNZIP], [unzip])
-   AC_PATH_PROG([MAKENSIS], [makensis])
-   AC_PATH_PROG([SHA256SUM], [sha256sum])
-
+if test "x$enable_msys2" = xtrue || test "x$enable_mingw" = xtrue ; then
    AC_MSG_CHECKING([the location of stdio.h to override])
    MINGW_STDIO_REALPATH=`echo "#include <stdio.h>" | $CC -xc -E - | sed -n 's/^#.*"\([^"]*stdio.h\)".*/\1/p' | sort -u`
    if test -f "$MINGW_STDIO_REALPATH"; then
@@ -140,11 +126,23 @@ if test "x$enable_msys2" = xtrue ; then
    esac
    export PKG_CONFIG_PATH
    if test "x$with_glew" != "xno" ; then
-      GL_CFLAGS="-I${with_glew}/include $GL_CFLAGS"
-      LDFLAGS="-L${with_glew}/bin $LDFLAGS"
+      if test -d "$with_glew"; then
+        GL_CFLAGS="-I${with_glew}/include $GL_CFLAGS"
+        LDFLAGS="-L${with_glew}/bin $LDFLAGS"
+      fi
       GL_LIBS="-lglew32 -lopengl32 $GL_LIBS"
    fi
 elif test "x$enable_mingw" = xtrue; then
+   enable_embedded=true
+   datarootdir="${prefix}"
+   bindir="${prefix}"
+   mandir="${prefix}"/doc
+   AC_DEFINE([MINGW],[1],[Define if you build for MinGW])
+   AC_PATH_PROG([CURL], [curl])
+   AC_PATH_PROG([UNZIP], [unzip])
+   AC_PATH_PROG([MAKENSIS], [makensis])
+   AC_PATH_PROG([SHA256SUM], [sha256sum])
+
    host=`uname -m`-w64-mingw32
    CFLAGS="$CFLAGS -I/usr/${host}/include -I/usr/local/${host}/include"
    CPPFLAGS="$CPPFLAGS -I/usr/${host}/include -I/usr/local/${host}/include"
@@ -311,7 +309,7 @@ AC_MSG_CHECKING([whether the OpenGL library is OpenGL ES])
 AC_LINK_IFELSE([_AX_CHECK_GL_PROGRAM],
 [AC_MSG_RESULT([no])
  AC_DEFINE([USE_GL2],[1],[Define to use alternative opengl blitter])
- if test "x$enable_mingw" = xtrue ; then
+ if test "x$enable_msys2" = xtrue || test "x$enable_mingw" = xtrue ; then
    glewname=glew32
  else
    glewname=GLEW
@@ -342,6 +340,7 @@ AM_CONDITIONAL(USE_GUI,[test x$enable_gui = xtrue])
 AM_CONDITIONAL(USE_GP2X,[test x$enable_gp2x = xtrue])
 AM_CONDITIONAL(USE_WIZ,[test x$enable_wiz = xtrue])
 AM_CONDITIONAL(USE_MINGW,[test x$enable_mingw = xtrue])
+AM_CONDITIONAL(USE_MSYS2,[test x$enable_msys2 = xtrue])
 AM_CONDITIONAL(USE_GLSL,[test x$ng_cv_use_glsl = xtrue])
 
 # Checks for header files.
