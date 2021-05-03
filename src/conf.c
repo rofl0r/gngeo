@@ -382,6 +382,31 @@ static int show_version(CONF_ITEM *self) {
 	return 0;
 }
 
+#if defined(MINGW) || defined(__MINGW32__) || defined(__MINGW64__)
+#define BUILD_ABS_PATH(x) build_mingw_abs_path(x)
+/* Convert absolute mingw path to absolute windows path.
+ *
+ * The data directory is an absolute path w.r.t. to the MSYS2
+ * installation path. On MSYS2, a translation to the absolute
+ * Windows path must be performed so that the Windows C runtime
+ * can access that path.
+ */
+char *build_mingw_abs_path(char *path) {
+  /* Assume gngeo is installed in /abs/.../path/bin/gngeo.exe and
+   * the data directory share the same /abs/.../path prefix.
+   */
+  #define PATH_LENGTH 32768
+  static char converted_path[PATH_LENGTH];
+  static char full_path[PATH_LENGTH];
+  /* Build path based on current program's installation path */
+  snprintf(converted_path, PATH_LENGTH, "%s\\..\\..\\..%s", _pgmptr, path);
+  _fullpath(full_path, converted_path, PATH_LENGTH);
+  return full_path;
+}
+#else
+#define BUILD_ABS_PATH(x) x
+#endif
+
 void cf_init(void) {
 
 	cf_create_action_item("help", "Print this help and exit", 'h', print_help);
@@ -424,10 +449,10 @@ void cf_init(void) {
 	cf_create_string_item("shaderpath", "Tell gngeo where your shaders are", "PATH", 'S', ROOTPATH"./shaders");
 	cf_create_string_item("datafile", "Tell gngeo where his ressource file is", "PATH", 'd', ROOTPATH"./gngeo_data.zip");
 #else
-	cf_create_string_item("rompath", "Tell gngeo where your roms are", "PATH", 'i', DATA_DIRECTORY);
-	cf_create_string_item("biospath", "Tell gngeo where your neogeo bios is", "PATH", 'B', DATA_DIRECTORY);
-	cf_create_string_item("shaderpath", "Tell gngeo where your shaders are", "PATH", 'S', DATA_DIRECTORY);
-	cf_create_string_item("datafile", "Tell gngeo where his ressource file is", "PATH", 'd', DATA_DIRECTORY"/gngeo_data.zip");
+	cf_create_string_item("rompath", "Tell gngeo where your roms are", "PATH", 'i', BUILD_ABS_PATH(DATA_DIRECTORY));
+	cf_create_string_item("biospath", "Tell gngeo where your neogeo bios is", "PATH", 'B', BUILD_ABS_PATH(DATA_DIRECTORY));
+	cf_create_string_item("shaderpath", "Tell gngeo where your shaders are", "PATH", 'S', BUILD_ABS_PATH(DATA_DIRECTORY));
+	cf_create_string_item("datafile", "Tell gngeo where his ressource file is", "PATH", 'd', BUILD_ABS_PATH(DATA_DIRECTORY"/gngeo_data.zip"));
 #endif
 	//cf_create_string_item("romrcdir","Use STRING as romrc.d directory",0,DATA_DIRECTORY"/romrc.d");
 #ifdef PROCESSOR_ADM64
@@ -541,19 +566,9 @@ int cf_save_option(char *filename, char *optname,int flags) {
 	CONF_ITEM *tosave; //cf_get_item_by_name(optname);
 
 	if (!conf_file) {
-#ifdef EMBEDDED_FS
-		int len = strlen(GNGEORC) + strlen(ROOTPATH"conf/") + 1;
+		int len = strlen(GNGEORC) + strlen(get_gngeo_dir()) + 1;
 		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, ROOTPATH"conf/"GNGEORC);
-#elif __AMIGA__
-		int len = strlen(GNGEORC) + strlen("/PROGDIR/data/") + 1;
-		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "/PROGDIR/data/"GNGEORC);
-#else /* POSIX */
-		int len = strlen(GNGEORC) + strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
-		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "%s/.gngeo/"GNGEORC, getenv("HOME"));
-#endif
+		sprintf(conf_file, "%s"GNGEORC, get_gngeo_dir());
 	}
 	conf_file_dst = alloca(strlen(conf_file) + 4);
 	sprintf(conf_file_dst, "%s.t", conf_file);
@@ -710,19 +725,9 @@ int cf_open_file(char *filename) {
 	CONF_ITEM *cf;
 
 	if (!conf_file) {
-#ifdef EMBEDDED_FS
-		int len = strlen(GNGEORC) + strlen(ROOTPATH"conf/") + 1;
+		int len = strlen(GNGEORC) + strlen(get_gngeo_dir()) + 1;
 		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, ROOTPATH"conf/"GNGEORC);
-#elif __AMIGA__
-		int len = strlen(GNGEORC) + strlen("/PROGDIR/data/") + 1;
-		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "/PROGDIR/data/"GNGEORC);
-#else
-		int len = strlen(GNGEORC) + strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
-		conf_file = (char *) alloca(len * sizeof (char));
-		sprintf(conf_file, "%s/.gngeo/"GNGEORC, getenv("HOME"));
-#endif
+		sprintf(conf_file, "%s"GNGEORC, get_gngeo_dir());
 	}
 	if ((f = fopen(conf_file, "rb")) == 0) {
 		//printf("Unable to open %s\n",conf_file);

@@ -83,16 +83,24 @@ char *get_gngeo_dir(void) {
 
 char *get_gngeo_dir(void) {
     static char *filename = NULL;
-#if defined (__AMIGA__)
+#if defined(EMBEDDED_FS)
+    int len = strlen(ROOTPATH"conf/") + 1
+#elif defined (__AMIGA__)
     int len = strlen("/PROGDIR/data/") + 1;
+#elif defined(MINGW) || defined(__MINGW32__) || defined(__MINGW64__)
+    int len = strlen(getenv("HOMEDRIVE")) + strlen(getenv("HOMEPATH")) + strlen("\\.gngeo\\") + 1;
 #else
     int len = strlen(getenv("HOME")) + strlen("/.gngeo/") + 1;
 #endif
     if (!filename) {
         filename = malloc(len * sizeof (char));
         CHECK_ALLOC(filename);
-#if defined (__AMIGA__)
+#if defined(EMBEDDED_FS)
+	sprintf(filename, ROOTPATH"conf/");
+#elif defined (__AMIGA__)
         sprintf(filename, "/PROGDIR/data/");
+#elif defined(MINGW) || defined(__MINGW32__) || defined(__MINGW64__)
+        sprintf(filename, "%s%s\\.gngeo\\",getenv("HOMEDRIVE"), getenv("HOMEPATH"));
 #else
         sprintf(filename, "%s/.gngeo/", getenv("HOME"));
 #endif
