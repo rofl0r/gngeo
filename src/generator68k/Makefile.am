@@ -13,8 +13,7 @@ gcc_build_verbose_0 = @echo "  HCC    $@";
 def68k_SOURCES = def68k.c tab68k2.c
 
 def68k.stamp: def68k$(EXEEXT) def68k.def
-	$(AM_V_GEN)./def68k$(EXEEXT) 2>&1 >/dev/null
-	touch def68k.stamp
+	$(AM_V_GEN)./def68k$(EXEEXT) 2>&1 >/dev/null && touch def68k.stamp
 
 def68k-proto.h def68k-funcs.h def68k-iibs.h : def68k.stamp
 
@@ -47,12 +46,13 @@ EXTRA_DIST = def68k.def compile.cg ccg/alpha ccg/asm-i386.h ccg/asm-sparc.h \
              ccg/insns-i386.h ccg/insns-ppc.h ccg/insns-sparc.h
 
 MOSTLYCLEANFILES = ${BUILT_SOURCES}
+CLEANFILES = def68k.stamp gen68k.stamp
 
 def68k.o gen68k.o tab68k2.o : %.o : %.c
 	$(gcc_build_verbose)$(CC_FOR_BUILD) -c $< -o $@ -I .. -I ../.. -I . `sdl2-config --cflags` -Umain -Dmain=main
 
 def68k$(EXEEXT) : def68k.o tab68k2.o
-	$(gcc_build_verbose)$(CC_FOR_BUILD) def68k.o tab68k2.o -o $@ 
+	$(gcc_build_verbose)$(CC_FOR_BUILD) def68k.o tab68k2.o -o $@
 
 gen68k$(EXEEXT) : gen68k.o tab68k2.o
 	$(gcc_build_verbose)$(CC_FOR_BUILD) gen68k.o tab68k2.o -o $@
@@ -68,8 +68,7 @@ CPU_OBJ    = cpu68k-0.o  cpu68k-1.o  cpu68k-2.o  cpu68k-3.o  \
 	     cpu68k-c.o  cpu68k-d.o  cpu68k-e.o  cpu68k-f.o
 
 gen68k.stamp : gen68k$(EXEEXT)
-	$(AM_V_GEN)./gen68k$(EXEEXT) 2>&1 >/dev/null
-	touch gen68k.stamp
+	$(AM_V_GEN)./gen68k$(EXEEXT) 2>&1 >/dev/null &&	touch gen68k.stamp
 
 # use a stamp file so gen68k isnt invoked repeatedly for every file
 $(CPU_SOURCE) : gen68k.stamp
